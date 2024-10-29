@@ -24,6 +24,19 @@ class Token(BaseModel):
     token_type: str
 
 
+def generate_jwt_token(data: dict, expires_delta: timedelta = None) -> Token:
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now() + expires_delta
+    else:
+        expire = datetime.now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    return Token(
+        access_token=encode(to_encode, SECRET_KEY, algorithm=ALGORITHM),
+        token_type="bearer",
+    )
+
+
 class AuthService:
     def __init__(self):
         self.pass_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -40,15 +53,6 @@ class AuthService:
             return False
         return user
 
-    def create_access_token(self, data: dict, expires_delta: timedelta = None):
-        to_encode = data.copy()
-        if expires_delta:
-            expire = datetime.now() + expires_delta
-        else:
-            expire = datetime.now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-        to_encode.update({"exp": expire})
-        return encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
 
 auth_service = AuthService()
 
@@ -58,11 +62,7 @@ def auth_get_user(token: str = Depends(oauth2_scheme)):
         payload = decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+            raise exceptions.InvalidTokenError
         return username
     except exceptions.InvalidTokenError:
         raise HTTPException(
@@ -81,8 +81,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token = auth_service.create_access_token(data={"sub": user["username"]})
-    return {"access_token": access_token, "token_type": "bearer"}
+    return generate_jwt_token(data={"sub": user["username"]})
 
 
 @app.get("/")
