@@ -1,0 +1,80 @@
+# Byte-compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.env/
+.venv/
+env/
+ENV/
+
+# Environment variables and secrets
+.env
+*.env
+.env.*
+
+# Distribution / packaging
+.Python
+build/
+dist/
+*.egg-info/
+*.egg
+*.whl
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Django / Flask specific
+*.log
+local_settings.py
+
+# Static files
+staticfiles/
+media/
+node_modules/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# Pytest cache
+.pytest_cache/
+.tox/
+.cache/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# mypy, pytype, and pyright
+.mypy_cache/
+.pytype/
+.dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+*.py,cover
+
+# Profiling data
+*.lprof
+*.dat
+*.prof
+
+# Others
+*.sqlite3
+*.lock
