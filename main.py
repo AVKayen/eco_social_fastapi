@@ -24,7 +24,7 @@ class User(BaseModel):
 # UserFull is stored on the DB, extends User
 class UserFull(User):
     password_hash: str
-    streak: int # example, tbd
+    streak: int = 0 # example, tbd
     # TODO: Mati W, Extend this User class to reflect the DB
 
 class Token(BaseModel):
@@ -49,7 +49,7 @@ class AuthService:
     def __init__(self):
         self.pass_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         self.users_db = {
-            "tester": {"username": "tester", "password": self.pass_context.hash("password")}
+            "tester": UserFull(id=1, username="tester", password_hash=self.pass_context.hash("password")),
         }
 
     def verify_password(self, plain_password, hashed_password):
@@ -58,7 +58,7 @@ class AuthService:
     def authenticate_user(self, form: OAuth2PasswordRequestForm) -> User | None:
         # TODO: Modify below to reflect DB changes; pass password_hash from UserFull
         user: User | None = self.users_db.get(form.username)
-        if not user or not self.verify_password(form.password, user["password"]):
+        if not user or not self.verify_password(form.password, user.password_hash):
             return None
         return user
 
@@ -69,17 +69,17 @@ auth_service = AuthService()
 def auth_get_user(token: str = Depends(oauth2_scheme)):
     try:
         payload = decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
+        payload.pop("exp", None)
+        user = User(**payload)
+        if user is None:
             raise exceptions.InvalidTokenError
-        return username
+        return user
     except exceptions.InvalidTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token",
             headers={"WWW-Authenticate": "Bearer"},
         )
-
 
 @app.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -90,7 +90,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return generate_jwt_token(data={"sub": user["username"]})
+    return generate_jwt_token(dict(user))
 
 
 @app.get("/")
@@ -99,8 +99,8 @@ async def root():
 
 
 @app.get("/hello")
-async def say_hello(username: str = Depends(auth_get_user)):
-    return {"message": f"Hello {username}"}
+async def say_hello(user: User = Depends(auth_get_user)):
+    return {"message": f"Hello {user.username}"}
 
 # TODO: User System
 ## Friend graph (adjacency network, relationships are two-way and must be accepted)
