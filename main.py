@@ -13,11 +13,19 @@ SECRET_KEY = "salty"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
+# TODO: Mati W, Change ID type to UUID
+type Id = int
 
+# User is the object passed around with JWT
 class User(BaseModel):
+    id: Id
     username: str
-    password: str
 
+# UserFull is stored on the DB, extends User
+class UserFull(User):
+    password_hash: str
+    streak: int # example, tbd
+    # TODO: Mati W, Extend this User class to reflect the DB
 
 class Token(BaseModel):
     access_token: str
@@ -47,10 +55,11 @@ class AuthService:
     def verify_password(self, plain_password, hashed_password):
         return self.pass_context.verify(plain_password, hashed_password)
 
-    def authenticate_user(self, username: str, password: str):
-        user = self.users_db.get(username)
-        if not user or not self.verify_password(password, user["password"]):
-            return False
+    def authenticate_user(self, form: OAuth2PasswordRequestForm) -> User | None:
+        # TODO: Modify below to reflect DB changes; pass password_hash from UserFull
+        user: User | None = self.users_db.get(form.username)
+        if not user or not self.verify_password(form.password, user["password"]):
+            return None
         return user
 
 
@@ -74,7 +83,7 @@ def auth_get_user(token: str = Depends(oauth2_scheme)):
 
 @app.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = auth_service.authenticate_user(form_data.username, form_data.password)
+    user = auth_service.authenticate_user(form_data)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
