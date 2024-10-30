@@ -27,13 +27,17 @@ class UserFull(User):
     streak: int = 0 # example, tbd
     # TODO: Mati W, Extend this User class to reflect the DB
 
+    def to_user(self) -> User:
+        return User(id=self.id, username=self.username)
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str
 
 
-def generate_jwt_token(data: dict, expires_delta: timedelta = None) -> Token:
-    to_encode = data.copy()
+def generate_jwt_token(data: User, expires_delta: timedelta = None) -> Token:
+    to_encode: dict = dict(data)
     if expires_delta:
         expire = datetime.now() + expires_delta
     else:
@@ -57,10 +61,10 @@ class AuthService:
 
     def authenticate_user(self, form: OAuth2PasswordRequestForm) -> User | None:
         # TODO: Modify below to reflect DB changes; pass password_hash from UserFull
-        user: User | None = self.users_db.get(form.username)
-        if not user or not self.verify_password(form.password, user.password_hash):
+        user_full: UserFull | None = self.users_db.get(form.username)
+        if not user_full or not self.verify_password(form.password, user_full.password_hash):
             return None
-        return user
+        return user_full.to_user()
 
 
 auth_service = AuthService()
@@ -81,6 +85,7 @@ def auth_get_user(token: str = Depends(oauth2_scheme)):
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+
 @app.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     user = auth_service.authenticate_user(form_data)
@@ -90,7 +95,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return generate_jwt_token(dict(user))
+    return generate_jwt_token(user)
 
 
 @app.get("/")
