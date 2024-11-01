@@ -5,6 +5,7 @@ from jwt import encode, decode, exceptions
 from passlib.context import CryptContext
 from pydantic import BaseModel
 from datetime import datetime, timedelta
+from typing import List, Optional
 
 app = FastAPI()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -13,19 +14,31 @@ SECRET_KEY = "salty"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-# TODO: Mati W, Change ID type to UUID
-type Id = int
+# TODO: Mati W, Change ID type to MongoDB ObjectId
+type Id = int # ?uint96 OR 12-byte ObjectId in MongoDB
+type ActivityId = Id # also ?uint96 / 12-byte ObjectId in MongoDB
+
 
 # User is the object passed around with JWT
+class Activity(BaseModel):
+    id: ActivityId
+    title: str
+    description: Optional[str]
+    points: int # how many points this activity is worth
+    streak: int # how many days into the streak this activity is done
+
+
 class User(BaseModel):
     id: Id
     username: str
 
+
 # UserFull is stored on the DB, extends User
 class UserFull(User):
     password_hash: str
-    streak: int = 0 # example, tbd
-    # TODO: Mati W, Extend this User class to reflect the DB
+    streak: int = 0
+    points: int = 0
+    activities: List[ActivityId] = []
 
     def to_user(self) -> User:
         return User(id=self.id, username=self.username)
