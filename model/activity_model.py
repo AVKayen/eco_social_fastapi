@@ -1,3 +1,4 @@
+from pydantic import BaseModel, Field
 from enum import IntEnum
 
 
@@ -21,3 +22,11 @@ class ActivityType(IntEnum):
     reduce_food_waste = 43
 
     other = 0
+
+
+class ActivityModel(BaseModel):
+    _id: str = Field(alias='_id')
+    activity_type: ActivityType
+    title: str
+    caption: str
+    images: list[str]
