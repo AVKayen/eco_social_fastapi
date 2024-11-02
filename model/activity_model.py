@@ -28,5 +28,5 @@ class ActivityModel(BaseModel):
     _id: str = Field(alias='_id')
     activity_type: ActivityType
     title: str
-    caption: str
-    images: list[str]
+    caption: str | None
+    images: list[str] | None

@@ -12,14 +12,14 @@ class FriendshipRequest(BaseModel):
 
 
 class UserModel(BaseModel):
-    id: str = Field(..., alias='_id')
+    id: str = Field(alias='_id')
     username: str
-    streak: Optional[int] = 0
-    points: Optional[int] = 0
-    activities: Optional[list[str]] = []
-    friends: Optional[list[str]] = []
-    incoming_requests: Optional[list[FriendshipRequest]] = []
-    outgoing_requests: Optional[list[FriendshipRequest]] = []
+    streak: int = 0
+    points: int = 0
+    activities: list[str] = []
+    friends: list[str] = []
+    incoming_requests: list[FriendshipRequest] = []
+    outgoing_requests: list[FriendshipRequest] = []
 
 
 class NewUserModel(BaseModel):
