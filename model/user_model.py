@@ -27,17 +27,22 @@ class NewUserModel(BaseModel):
     password_hash: str
 
 
-def get_user_by_id(_id: str):
+def get_user_by_id(_id: str) -> UserModel:
     result = session.users_collection().find_one({'_id': ObjectId(_id)})
     result['_id'] = str(result['_id'])
     return UserModel(**result)
 
 
-def get_user_password_by_username(username: str):
+def get_user_id_by_username(username: str) -> str:
+    result = session.users_collection().find_one({'username': username})
+    return str(result['_id'])
+
+
+def get_user_password_by_username(username: str) -> str:
     result = session.users_collection().find_one({'username': username})
     return result['password_hash']
 
 
-def create_user(user: NewUserModel):
+def create_user(user: NewUserModel) -> str:
     inserted_id = session.users_collection().insert_one(dict(user)).inserted_id
     return inserted_id
