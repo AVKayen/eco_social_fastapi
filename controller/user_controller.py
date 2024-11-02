@@ -1,4 +1,4 @@
-from auth_controller import TokenData
+from controller.auth_controller import TokenData
 from model.user_model import get_user_by_id
 
 
