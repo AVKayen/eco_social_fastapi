@@ -1,5 +1,6 @@
-from pymongo.mongo_client import MongoClient
+from pymongo.mongo_client import Any, MongoClient
 from dotenv import load_dotenv
+from typing import Dict
 
 import os
 
@@ -30,11 +31,11 @@ ENV_NAME = 'DB_URI'
 
 class Session:
     def __init__(self, conn_string: str):
-        self._client = MongoClient(conn_string)
-        self._db = self._client.eco_social
+            self._client: MongoClient[Dict[str, Any]] = MongoClient(conn_string)
+            self._db = self._client.get_database('eco_social')
 
-        # for collection in self._db.list_collections():
-        #     print(collection)
+            # for collection in self._db.list_collections():
+            #     print(collection)
 
     # def create_collection(self, name: str, validator: dict):
     #     self._db.create_collection(name)

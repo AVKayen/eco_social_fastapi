@@ -4,9 +4,11 @@ from passlib.context import CryptContext
 import jwt
 from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel
-from typing import Annotated
+from typing import Annotated, Dict, Any
 import os
 from datetime import datetime, timedelta, timezone
+
+from pymongo.mongo_client import Any
 
 from model.user_model import get_user_password_by_username, get_user_id_by_username
 
@@ -32,11 +34,11 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-def verify_password(plain_password, hashed_password) -> bool:
+def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def get_password_hash(password) -> str:
+def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
@@ -49,7 +51,7 @@ def authenticate_user(username: str, password: str):
     return True
 
 
-def create_access_token(payload: dict, expires_delta: timedelta | None) -> str:
+def create_access_token(payload: Dict[str, Any], expires_delta: timedelta | None) -> str:
     to_encode = payload.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
@@ -85,7 +87,15 @@ def create_token(form_data: OAuth2PasswordRequestForm) -> Token:
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    user_id: str = get_user_id_by_username(form_data.username)
+    user_id: str | None = get_user_id_by_username(form_data.username)
+
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found. This can only happen if the user was deleted while they were logged in.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
     access_token = create_access_token(

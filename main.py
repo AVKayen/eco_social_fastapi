@@ -19,7 +19,7 @@ async def say_hello(token_data: TokenData = Depends(parse_token)):
     return {'message': f'Hello {token_data.username}'}
 
 
-app.include_router(auth_router, prefix='/auth')
+app.include_router(auth_router)
 app.include_router(user_router, prefix='/user')
 
 '''
@@ -35,4 +35,3 @@ Friends activities in the Feed tab
 Each activity is attached to a pool of points that are added to the **Profile XP**
 At least one activity a day keeps **The Streak** alive
 '''
-
