@@ -5,6 +5,8 @@ from jwt import encode, decode, exceptions
 from passlib.context import CryptContext
 from pydantic import BaseModel
 from datetime import datetime, timedelta
+from typing import List, Optional
+from enum import Enum
 
 app = FastAPI()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -13,19 +15,55 @@ SECRET_KEY = "salty"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-# TODO: Mati W, Change ID type to UUID
-type Id = int
+# TODO: Mati W, Change ID type to MongoDB ObjectId
+type Id = int # ?uint96 OR 12-byte ObjectId in MongoDB
+type ActivityId = Id # also ?uint96 / 12-byte ObjectId in MongoDB
+type image_url = str
+
+class ActivityType(int, Enum):
+    trash_picking = 1
+
+    pub_transport_instead_of_car = 11
+    bike_instead_of_car = 12
+    walk_instead_of_car = 13
+    train_instead_of_plane = 14
+
+    plant_tree = 21
+    plant_other = 22
+
+    buy_local = 31
+    buy_second_hand = 32
+    sell_unused = 33
+
+    reduce_water = 41
+    reduce_energy = 42
+    reduce_food_waste = 43
+
+    other = 0
+
 
 # User is the object passed around with JWT
+class Activity(BaseModel):
+    id: ActivityId
+    title: str
+    description: Optional[str]
+    photo: Optional[image_url]
+    type: ActivityType
+    points: int # how many points this activity is worth
+    streak: int # how many days into the streak this activity is done
+
+
 class User(BaseModel):
     id: Id
     username: str
 
+
 # UserFull is stored on the DB, extends User
 class UserFull(User):
     password_hash: str
-    streak: int = 0 # example, tbd
-    # TODO: Mati W, Extend this User class to reflect the DB
+    streak: int = 0
+    points: int = 0
+    activities: List[ActivityId] = []
 
     def to_user(self) -> User:
         return User(id=self.id, username=self.username)
