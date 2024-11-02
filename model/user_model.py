@@ -8,7 +8,7 @@ from datetime import datetime
 
 class FriendshipRequest(BaseModel):
     user_id: str
-    send_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
+    sent_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
 
 
 class UserModel(BaseModel):
