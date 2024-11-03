@@ -24,7 +24,8 @@ app.include_router(user_router, prefix='/user')
 
 '''
 TODO: User System
-Friend graph (adjacency network, relationships are two-way and must be accepted)
+Check if you're already friends / have a request before sending
+Friend graph (adjacency network)
 
 TODO: Activity System (Addition, Editing, Types)
 User can create activities of certain type, description and photo
