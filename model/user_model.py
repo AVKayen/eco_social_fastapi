@@ -47,11 +47,11 @@ def get_user_password_by_username(username: str) -> str | None:
     return result['password_hash']
 
 
-def create_user(user: NewUserModel) -> str | None:
+def create_user(user: NewUserModel) -> bool:
     try:
         inserted_id = session.users_collection().insert_one(dict(user)).inserted_id
     except Exception as e:
         print(e)
-        return None
+        return False
 
-    return inserted_id
+    return bool(inserted_id)
