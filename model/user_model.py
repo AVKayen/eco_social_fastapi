@@ -1,16 +1,10 @@
 from pymongo.mongo_client import Any
 from typing_extensions import Dict
 from pydantic import BaseModel, Field
-from typing import Optional
 from bson import ObjectId
 from db.session import session
 
-from datetime import UTC, datetime
-
-
-class FriendshipRequest(BaseModel):
-    user_id: str
-    sent_at: Optional[datetime] = Field(default_factory=lambda: datetime.now(UTC))
+from model.friendship_model import FriendshipRequest
 
 
 class UserModel(BaseModel):
