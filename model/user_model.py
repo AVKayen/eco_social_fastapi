@@ -7,7 +7,7 @@ from pydantic import Field
 
 
 class FriendshipRequest(BaseModel):
-    user_id: ObjectId
+    user_id: str
     sent_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
@@ -97,85 +97,106 @@ def is_user_friend(user1_id: str, user2_id: str) -> bool:
     return bool(result)
 
 
-def get_friends(_id: str) -> list[ObjectId] | None:
-    result = session.users_collection().find({
-        "_id": ObjectId(_id),
-        "friends" : 1
-    })[0]
+def get_friends(_id: str) -> list[ObjectId]:
+    result = session.users_collection().find_one(
+        {"_id": ObjectId(_id)},
+        {'friends': 1}
+    )
     if result is None:
-        return None
+        return []
     return result
 
 
-def get_incoming_requests(_id: str) -> list[FriendshipRequest] | None:
-    result = session.users_collection().find({
-        "_id": ObjectId(_id),
-        "incoming_requests" : 1
-    })[0]
+def get_incoming_requests(_id: str) -> list[FriendshipRequest]:
+    result = session.users_collection().find_one(
+        {'_id': ObjectId(_id)},
+        {'incoming_requests': 1}
+    )
     if result is None:
-        return None
+        return []
     return result
 
 
-def get_outgoing_requests(_id: str) -> list[FriendshipRequest] | None:
+def get_outgoing_requests(_id: str) -> list[FriendshipRequest]:
     result = session.users_collection().find_one(
         {'_id': ObjectId(_id)},
         {'friends': 1}
     )
     if result is None:
-        return None
+        return []
     return result['friends']
 
 
-def send_request(my_id: ObjectId, friend_id: ObjectId) -> FriendshipRequest:
+def send_request(my_id: str, friend_id: str) -> int:
     request_to_friend = FriendshipRequest(friend_id=friend_id)
     request_from_me = FriendshipRequest(friend_id=my_id)
-    query = {"_id": my_id}  # add request to my outgoing_requests
-    update = {"$addToSet": {"outgoing_requests": dict(request_to_friend)}}
-    session.users_collection().update_one(query, update)
 
-    query = {"_id": friend_id}  # add request to friend's incoming_requests
-    update = {"$addToSet": {"incoming_requests": dict(request_from_me)}}
-    session.users_collection().update_one(query, update)
+    query = {'_id': my_id}  # add request to my outgoing_requests
+    update = {'$addToSet': {'outgoing_requests': {
+        'user_id': ObjectId(request_to_friend.user_id),
+        'sent_at': request_to_friend.sent_at
+    }}}
+    matched_count = session.users_collection().update_one(query, update).matched_count
 
-    return request_to_friend
+    query = {'_id': friend_id}  # add request to friend's incoming_requests
+    update = {'$addToSet': {'incoming_requests': {
+        'user_id': ObjectId(request_from_me.user_id),
+        'sent_at': request_from_me.sent_at
+    }}}
+    matched_count += session.users_collection().update_one(query, update)
 
-
-def cancel_request(my_id: ObjectId, friend_id: ObjectId):
-
-    query = {"_id": my_id}  # delete request instance for me
-    update = {"$pull": {"outgoing_requests": {"user_id": friend_id}}}
-    session.users_collection().update_one(query, update)
-
-    query = {"_id": friend_id}  # delete request instance for friend
-    update = {"$pull": {"incoming_requests": {"user_id": my_id}}}
-    session.users_collection().update_one(query, update)
+    return matched_count
 
 
-def decline_request(my_id: ObjectId, friend_id: ObjectId):
+def cancel_request(my_id: str, friend_id: str) -> int:
+
+    my_id = ObjectId(my_id)
+    friend_id = ObjectId(friend_id)
+
+    query = {'_id': my_id}  # delete request instance for me
+    update = {'$pull': {'outgoing_requests': {'user_id': friend_id}}}
+    matched_count = session.users_collection().update_one(query, update).matched_count
+
+    query = {'_id': friend_id}  # delete request instance for friend
+    update = {'$pull': {'incoming_requests': {'user_id': my_id}}}
+    matched_count += session.users_collection().update_one(query, update).matched_count
+
+    return matched_count
+
+
+def decline_request(my_id: str, friend_id: str) -> int:
     return cancel_request(my_id, friend_id)
 
 
-def approve_request(my_id: ObjectId, friend_id: ObjectId):
+def approve_request(my_id: str, friend_id: str) -> int:
+
+    matched_count = decline_request(my_id, friend_id)  # remove requests
+
+    my_id = ObjectId(my_id)
+    friend_id = ObjectId(friend_id)
 
     query = {"_id": my_id}  # add friend to my instance
     update = {"$addToSet": {"friends": friend_id}}
-    session.users_collection().update_one(query, update)
+    matched_count += session.users_collection().update_one(query, update).matched_count
 
     query = {"_id": friend_id}  # add me to friend's instance
     update = {"$addToSet": {"friends": my_id}}
-    session.users_collection().update_one(query, update)
+    matched_count += session.users_collection().update_one(query, update).matched_count
 
-    decline_request(my_id, friend_id)  # remove requests
+    return matched_count
 
 
-def delete_friend(my_id: ObjectId, friend_id: ObjectId) -> ObjectId:
+def delete_friend(my_id: str, friend_id: str) -> int:
+
+    my_id = ObjectId(my_id)
+    friend_id = ObjectId(friend_id)
+
     query = {"_id": my_id}  # delete friend instance for me
     update = {"$pull": {"friends": friend_id}}
-    session.users_collection().update_one(query, update)
+    matched_count = session.users_collection().update_one(query, update).matched_count
 
     query = {"_id": friend_id}  # delete request instance for friend
     update = {"$pull": {"friends": my_id}}
-    session.users_collection().update_one(query, update)
+    matched_count += session.users_collection().update_one(query, update).matched_count
 
-    return friend_id
+    return matched_count
