@@ -107,14 +107,14 @@ def create_friendship_request(user_id: str, receiver_id: str) -> bool:
 
 
 def cancel_friendship_request(user_id: str, receiver_id: str) -> bool:
-    modified_count1 = session.users_collection().update_one(
+    matched_count1 = session.users_collection().update_one(
         {'_id': ObjectId(user_id)},
         {'$pull': {'outgoing_requests': {'user_id': ObjectId(receiver_id)}}}
-    ).modified_count
+    ).matched_count
 
-    modified_count2 = session.users_collection().update_one(
+    matched_count2 = session.users_collection().update_one(
         {'_id': ObjectId(receiver_id)},
         {'$pull': {'incoming_requests': {'user_id': ObjectId(receiver_id)}}}
-    )
+    ).matched_count
 
-    return modified_count1 + modified_count2 == 2
+    return matched_count1 + matched_count2 == 2
