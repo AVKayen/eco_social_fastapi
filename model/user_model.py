@@ -3,7 +3,6 @@ from typing import Any
 from bson import ObjectId
 from db.session import session
 from datetime import datetime, timezone
-from pydantic import Field
 
 
 class FriendshipRequest(BaseModel):
