@@ -1,5 +1,4 @@
 from pymongo.mongo_client import Any
-from typing_extensions import Dict
 from pydantic import BaseModel, Field
 from bson import ObjectId
 from db.session import session
@@ -24,7 +23,7 @@ class NewUserModel(BaseModel):
 
 
 def get_user_by_id(_id: str) -> UserModel | None:
-    result: Dict[str, Any] | None = session.users_collection().find_one({'_id': ObjectId(_id)})
+    result: dict[str, Any] | None = session.users_collection().find_one({'_id': ObjectId(_id)})
 
     if result is None:
         return None
@@ -54,6 +53,5 @@ def create_user(user: NewUserModel) -> str | None:
     except Exception as e:
         print(e)
         return None
-
 
     return inserted_id
