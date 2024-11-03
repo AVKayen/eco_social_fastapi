@@ -2,8 +2,13 @@ from pydantic import BaseModel, Field
 from typing import Any
 from bson import ObjectId
 from db.session import session
+from datetime import datetime, timezone
+from pydantic import Field
 
-from model.friendship_model import FriendshipRequest
+
+class FriendshipRequest(BaseModel):
+    user_id: str
+    sent_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class PublicUserModel(BaseModel):  # The way anyone can see you
@@ -33,6 +38,7 @@ class NewUserModel(BaseModel):  # Used for new user creation, maybe unnecessary?
     password_hash: str
 
 
+# Functions related to the user itself
 def get_user_by_id(_id: str) -> UserModel | None:
     result: dict[str, Any] | None = session.users_collection().find_one({'_id': ObjectId(_id)})
 
@@ -71,7 +77,7 @@ def create_user(user: NewUserModel) -> bool:
 def get_public_user(user_id: str) -> PublicUserModel:
     result = session.users_collection().find_one({'_id': ObjectId(user_id)})
     result['_id'] = user_id
-    friend_count = len(result['friends'])
+    friend_count = len(result['friends']) if 'friends' in result.keys() else 0
     result['friend_count'] = friend_count
     return PublicUserModel(**result)
 
@@ -82,9 +88,10 @@ def get_private_user(user_id: str) -> PrivateUserModel:
     return PrivateUserModel(**result)
 
 
+# Functions related to friendship
 def is_user_friend(user1_id: str, user2_id: str) -> bool:
     result = session.users_collection().find_one({
         '_id': ObjectId(user1_id),
-        'friends': {'$elemMatch': ObjectId(user2_id)}
+        'friends': {'$elemMatch': {'user_id': ObjectId(user2_id)}}
     })
     return bool(result)
