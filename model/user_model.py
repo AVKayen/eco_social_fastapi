@@ -6,18 +6,29 @@ from db.session import session
 from model.friendship_model import FriendshipRequest
 
 
-class UserModel(BaseModel):
+class PublicUserModel(BaseModel):  # The way anyone can see you
+    id: str = Field(alias='_id')
+    username: str
+    streak: int = 0
+    points: int = 0
+    friend_count: int = 0
+
+
+class PrivateUserModel(BaseModel):  # The way your friends see you
     id: str = Field(alias='_id')
     username: str
     streak: int = 0
     points: int = 0
     activities: list[str] = []
     friends: list[str] = []
+
+
+class UserModel(PrivateUserModel):  # The way only you can see yourself
     incoming_requests: list[FriendshipRequest] = []
     outgoing_requests: list[FriendshipRequest] = []
 
 
-class NewUserModel(BaseModel):
+class NewUserModel(BaseModel):  # Used for new user creation, maybe unnecessary?...
     username: str
     password_hash: str
 
@@ -49,9 +60,31 @@ def get_user_password_by_username(username: str) -> str | None:
 
 def create_user(user: NewUserModel) -> bool:
     try:
-        inserted_id = session.users_collection().insert_one(dict(user)).inserted_id
+        inserted_id = session.users_collection().insert_one(user.model_dump()).inserted_id
     except Exception as e:
         print(e)
         return False
 
     return bool(inserted_id)
+
+
+def get_public_user(user_id: str) -> PublicUserModel:
+    result = session.users_collection().find_one({'_id': ObjectId(user_id)})
+    result['_id'] = user_id
+    friend_count = len(result['friends'])
+    result['friend_count'] = friend_count
+    return PublicUserModel(**result)
+
+
+def get_private_user(user_id: str) -> PrivateUserModel:
+    result = session.users_collection().find_one({'_id': ObjectId(user_id)})
+    result['_id'] = user_id
+    return PrivateUserModel(**result)
+
+
+def is_user_friend(user1_id: str, user2_id: str) -> bool:
+    result = session.users_collection().find_one({
+        '_id': ObjectId(user1_id),
+        'friends': {'$elemMatch': ObjectId(user2_id)}
+    })
+    return bool(result)
