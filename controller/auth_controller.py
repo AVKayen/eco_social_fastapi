@@ -8,8 +8,6 @@ from typing import Annotated, Dict, Any
 import os
 from datetime import datetime, timedelta, timezone
 
-from pymongo.mongo_client import Any
-
 from model.user_model import get_user_password_by_username, get_user_id_by_username
 
 

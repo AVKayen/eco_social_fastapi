@@ -1,5 +1,5 @@
-from pymongo.mongo_client import Any
 from pydantic import BaseModel, Field
+from typing import Any
 from bson import ObjectId
 from db.session import session
 
