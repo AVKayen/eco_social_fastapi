@@ -95,3 +95,27 @@ def is_user_friend(user1_id: str, user2_id: str) -> bool:
         'friends': {'$elemMatch': {'user_id': ObjectId(user2_id)}}
     })
     return bool(result)
+
+
+def create_friendship_request(user_id: str, receiver_id: str) -> bool:
+    friendship_request = FriendshipRequest(user_id=user_id)
+    modified_count = session.users_collection().update_one(
+        {'_id': ObjectId(receiver_id)},
+        {'$addToSet': {'incoming_requests': friendship_request}}
+    ).modified_count
+
+    return bool(modified_count)
+
+
+def cancel_friendship_request(user_id: str, receiver_id: str) -> bool:
+    modified_count1 = session.users_collection().update_one(
+        {'_id': ObjectId(user_id)},
+        {'$pull': {'outgoing_requests': {'user_id': ObjectId(receiver_id)}}}
+    ).modified_count
+
+    modified_count2 = session.users_collection().update_one(
+        {'_id': ObjectId(receiver_id)},
+        {'$pull': {'incoming_requests': {'user_id': ObjectId(receiver_id)}}}
+    )
+
+    return modified_count1 + modified_count2 == 2
