@@ -100,7 +100,7 @@ def is_user_friend(my_id: str, friend_id: str) -> bool:
 def is_sent_request(my_id: str, friend_id: str) -> bool:
     result = session.users_collection().find_one({
         '_id': ObjectId(my_id),
-        'outgoing_requests.friend_id': {'$elemMatch': {'user_id': ObjectId(friend_id)}} #gemini mówi że zadziała
+        'outgoing_requests.friend_id': {'$elemMatch': {'user_id': ObjectId(friend_id)}} #gemini said it'd work
     })
     return bool(result)
 
@@ -116,7 +116,7 @@ def get_friends(_id: str) -> list[ObjectId]:
 
 
 def get_incoming_requests(_id: str) -> list[FriendshipRequest]:
-    result = session.users_collection().find_one( #czy tu i niżej na pewno jest find_one a nie find_all?
+    result = session.users_collection().find_one( #is it surely find_one, not find_all?
         {'_id': ObjectId(_id)},
         {'incoming_requests': 1}
     )
@@ -137,7 +137,9 @@ def get_outgoing_requests(_id: str) -> list[FriendshipRequest]:
 
 def send_request(my_id: str, friend_id: str) -> int:
     if is_sent_request(my_id, friend_id):
-        return -1
+        return -1 #check if you've already sent a request
+    if is_sent_request(friend_id, my_id):
+        return -2 #check if your friend haven't already sent you a request
 
     request_to_friend = FriendshipRequest(friend_id=friend_id)
     request_from_me = FriendshipRequest(friend_id=my_id)
@@ -176,7 +178,7 @@ def cancel_request(my_id: str, friend_id: str) -> int:
 
 
 def decline_request(my_id: str, friend_id: str) -> int:
-    return cancel_request(friend_id, my_id) #operacja odwrota do cancel_request - incoming_request usuwasz u siebie, outgoing_request u friend'a
+    return cancel_request(friend_id, my_id) #opposite operation to cancel_request - delete your incoming request, outgoing_request in friend
 
 
 def approve_request(my_id: str, friend_id: str) -> int:
