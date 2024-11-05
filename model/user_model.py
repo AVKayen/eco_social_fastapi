@@ -255,12 +255,15 @@ def __get_n_best_recommendations(friends, amount) -> list[FriendCloseness]:
 
 def get_friend_recommendations(my_id: str, amount: int) -> list[ObjectId]:
     my_friends = get_friends(my_id)
-    all_friends = {}
+    all_recommendations = {}
     for friend in my_friends:
         friend_friends = get_friends(str(friend))
-        all_friends |= set(map(lambda x: FriendCloseness(x), friend_friends))
+        all_recommendations |= set(map(lambda x: FriendCloseness(x), friend_friends))
 
-    top_n = sorted(__get_n_best_recommendations(all_friends, amount), reverse=True)
+    my_friends_set = set(map(FriendCloseness, map(str, my_friends)))
+    resulting_recommendations = all_recommendations.difference(my_friends_set)
+
+    top_n = sorted(__get_n_best_recommendations(resulting_recommendations, amount), reverse=True)
 
     to_string = [recommendation.id for recommendation in top_n]
     id_list = list(map(ObjectId, to_string))
