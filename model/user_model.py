@@ -1,9 +1,37 @@
+import collections
+from email.policy import strict
+import heapq
+
+from fontTools.misc.cython import returns
 from pydantic import BaseModel
-from typing import Any
+from typing import Any, Counter
 from bson import ObjectId
+
 from db.session import session
 from datetime import datetime, timezone
 from pydantic import Field
+
+
+class FriendCloseness:
+    def __init__(self, _id: str):
+        self._id = _id
+        self.count = 0
+
+    def __hash__(self):
+        return hash(self._id)
+
+    def __eq__(self, other):
+        if self.id == other.id:
+            self.count += 1
+            return True
+        return False
+
+    def __lt__(self, other):
+        return self.count < other.count
+
+    @property
+    def id(self):
+        return self._id
 
 
 class FriendshipRequest(BaseModel):
@@ -213,3 +241,29 @@ def delete_friend(my_id: str, friend_id: str) -> int:
     matched_count += session.users_collection().update_one(query, update).matched_count
 
     return matched_count
+
+
+def __get_n_best_recommendations(friends, amount) -> list[FriendCloseness]:
+    closest_friends = []
+    for closeness in friends:
+        if len(closest_friends) < amount:
+            heapq.heappush(closest_friends, closeness)
+        else:
+            heapq.heappushpop(closest_friends, closeness)
+    return closest_friends
+
+
+def get_friend_recommendations(my_id: str, amount: int) -> list[ObjectId]:
+    my_friends = get_friends(my_id)
+    all_friends = {}
+    for friend in my_friends:
+        friend_friends = get_friends(str(friend))
+        all_friends |= set(map(lambda x: FriendCloseness(x), friend_friends))
+
+    top_n = sorted(__get_n_best_recommendations(all_friends, amount), reverse=True)
+
+    to_string = [recommendation.id for recommendation in top_n]
+    id_list = list(map(ObjectId, to_string))
+    return id_list
+
+
