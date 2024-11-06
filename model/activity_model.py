@@ -1,6 +1,8 @@
 from pydantic import BaseModel, Field
 from enum import IntEnum
 
+from db.session import session
+
 
 class ActivityType(IntEnum):
     trash_picking = 1
@@ -30,3 +32,9 @@ class ActivityModel(BaseModel):
     title: str
     caption: str | None
     images: list[str] | None
+
+
+def create_activity(activity: ActivityModel):
+    inserted_id = session.activities_collection().insert_one(activity.model_dump()).inserted_id
+    print(inserted_id)
+    return inserted_id

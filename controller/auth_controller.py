@@ -8,7 +8,7 @@ from typing import Annotated, Dict, Any
 import os
 from datetime import datetime, timedelta, timezone
 
-from model.user_model import NewUserModel, get_user_password_by_username, get_user_id_by_username, create_user
+from model.user_model import get_user_password_by_username, get_user_id_by_username, create_user
 
 
 class Token(BaseModel):
@@ -104,5 +104,5 @@ def create_token(form_data: OAuth2PasswordRequestForm) -> Token:
 
 def signup_user(form_data: OAuth2PasswordRequestForm) -> bool:
     password_hash = get_password_hash(form_data.password)
-    return create_user(NewUserModel(username=form_data.username, password_hash=password_hash))
+    return create_user(username=form_data.username, password_hash=password_hash)
 

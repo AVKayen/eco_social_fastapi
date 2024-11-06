@@ -24,7 +24,8 @@ app.include_router(user_router, prefix='/user')
 
 '''
 TODO: User System
-done?
+The last thing to be implemented I think is handling invalid input from user requests
+(the case where user passes a wrong-length string as an ObjectId)
 
 TODO: Activity System (Addition, Editing, Types)
 User can create activities of certain type, description and photo
