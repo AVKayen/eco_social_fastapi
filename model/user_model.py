@@ -38,23 +38,24 @@ class FriendshipRequest(BaseModel):
     sent_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
-class PublicUserModel(BaseModel):  # The way anyone can see you
+class BaseUserModel(BaseModel):
     id: Annotated[ObjectId, ObjectIdPydanticAnnotation] = Field(alias='_id')
     username: str
     streak: int = 0
     points: int = 0
+    profile_pic_link: str | None
+    about_me: str | None
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class PublicUserModel(BaseUserModel):  # The way anyone can see you
     friend_count: int = 0
 
 
-class PrivateUserModel(BaseModel):  # The way your friends see you
-    id: Annotated[ObjectId, ObjectIdPydanticAnnotation] = Field(alias='_id')
-    username: str
-    streak: int = 0
-    points: int = 0
+class PrivateUserModel(BaseUserModel):  # The way your friends see you
     activities: list[str] = []
     friends: list[Annotated[ObjectId, ObjectIdPydanticAnnotation]] = []
-
-    model_config = ConfigDict(populate_by_name=True)
 
 
 class UserModel(PrivateUserModel):  # The way only you can see yourself
