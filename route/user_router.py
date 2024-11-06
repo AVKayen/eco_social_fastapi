@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import Depends, APIRouter
 
-from model.request_body_models import UserIdBody
+from model.request_body_model import UserIdBody
 from model.response_model import ResponseModel
 from controller.auth_controller import TokenData, parse_token
 import model.user_model as user_model
