@@ -1,26 +1,11 @@
 from typing import Annotated
-from pydantic import BaseModel
 
 from fastapi import Depends, APIRouter
 
+from model.request_body_models import UserIdBody
+from model.response_model import ResponseModel
 from controller.auth_controller import TokenData, parse_token
 import model.user_model as user_model
-
-
-class UserIdBody(BaseModel):
-    user_id: str
-
-
-class ResponseModel(BaseModel):
-    status: str
-
-    @staticmethod
-    def success():
-        return ResponseModel(status='Success')
-
-    @staticmethod
-    def error():
-        return ResponseModel(status='Something went wrong')
 
 
 user_router = APIRouter()
