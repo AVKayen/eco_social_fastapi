@@ -1,7 +1,10 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from enum import IntEnum
+from bson import ObjectId
+from typing import Annotated
 
 from db.session import session
+from model.object_id_model import ObjectIdPydanticAnnotation
 
 
 class ActivityType(IntEnum):
@@ -28,10 +31,15 @@ class ActivityType(IntEnum):
 
 class ActivityModel(BaseModel):
     _id: str = Field(alias='_id')
+    user_id: Annotated[ObjectId, ObjectIdPydanticAnnotation]
     activity_type: ActivityType
     title: str
+    points_gained: int
+    streak_snapshot: int = 0
     caption: str | None
-    images: list[str] | None
+    images: list[str] = []
+
+    model_config = ConfigDict(populate_by_name=True)
 
 
 def create_activity(activity: ActivityModel):
