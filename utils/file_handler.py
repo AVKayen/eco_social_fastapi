@@ -1,6 +1,7 @@
 from fastapi import UploadFile, HTTPException
 from uuid import UUID, uuid4
 import os
+import glob
 
 
 UPLOAD_DIR = os.getenv('UPLOAD_DIR')
@@ -11,7 +12,8 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 CHUNK_SIZE = 1024 * 1024  # 1 MB
 
 MIME_TYPES = {
-    'image/jpeg': 'jpg'
+    'image/jpeg': 'jpg',
+    'image/png': 'png'
 }
 
 
@@ -38,7 +40,10 @@ async def handle_file_upload(uploaded_file: UploadFile, accepted_mime_types: set
     return uuid
 
 
-
-
-
-
+def delete_uploaded_file(uuid: str):
+    filename = f'{uuid}.*'
+    matches = glob.glob(os.path.join(UPLOAD_DIR, filename))
+    if matches:
+        os.remove(matches[0])
+        return True
+    return False
