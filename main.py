@@ -26,6 +26,10 @@ app.include_router(user_router, prefix='/user')
 TODO: User System
 - implement route for new friend recommendations
 
+TODO: File uploads
+- create a filepath type that will convert uuid to complete path
+  to resource during pydantic model validation
+
 TODO: Activity System (Addition, Editing, Types)
 User can create activities of certain type, description and photo
 Types:
