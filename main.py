@@ -3,8 +3,8 @@ from fastapi import Depends, FastAPI
 # imports needed for the hello endpoint
 from controller.auth_controller import parse_token, TokenData
 
-from route.auth_router import auth_router
-from route.user_router import user_router
+from router.auth_router import auth_router
+from router.user_router import user_router
 
 app = FastAPI()
 
@@ -24,9 +24,7 @@ app.include_router(user_router, prefix='/user')
 
 '''
 TODO: User System
-- handling invalid input from user requests
-(the case where user passes a wrong-length string as an ObjectId)
-- adding proper status codes (not only text messages)
+- implement route for new friend recommendations
 
 TODO: Activity System (Addition, Editing, Types)
 User can create activities of certain type, description and photo

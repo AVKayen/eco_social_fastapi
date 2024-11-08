@@ -281,9 +281,16 @@ def set_about_me(user_id: str, about_me: str) -> bool:
     return modified_count == 1
 
 
-def set_profile_pic(user_id: str, uuid: UUID) -> bool:
+def set_profile_pic(user_id: str, uuid: str) -> bool:
     modified_count = session.users_collection().update_one(
         {'_id': ObjectId(user_id)},
-        {'$set': {'profile_pic_uuid': str(uuid)}}
+        {'$set': {'profile_pic_uuid': uuid}}
     ).modified_count
     return modified_count == 1
+
+
+def get_profile_pic(user_id: str) -> str | None:
+    results = session.users_collection().find_one({'_id': ObjectId(user_id)}, {'profile_pic_uuid': 1})
+    if results and 'profile_pic_uuid' in results:
+        return results['profile_pic_uuid']
+    return None
