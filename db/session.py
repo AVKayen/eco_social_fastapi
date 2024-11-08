@@ -34,6 +34,7 @@ class Session:
     def __init__(self, conn_string: str):
         self._client: MongoClient[Dict[str, Any]] = MongoClient(conn_string)
         self._db = self._client.get_database('eco_social')
+        print('Connected to the MongoDB')
 
         # for collection in self._db.list_collections():
         #     print(collection)

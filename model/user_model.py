@@ -3,6 +3,7 @@ import heapq
 from pydantic import BaseModel, ConfigDict
 from typing import Any, Annotated
 from bson import ObjectId
+from uuid import UUID
 
 from db.session import session
 from datetime import datetime, timezone
@@ -43,8 +44,8 @@ class BaseUserModel(BaseModel):
     username: str
     streak: int = 0
     points: int = 0
-    profile_pic_link: str | None
-    about_me: str | None
+    profile_pic_uuid: str = ''
+    about_me: str = ''
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -90,14 +91,11 @@ def get_user_password_by_username(username: str) -> str | None:
 
 
 def create_user(username: str, password_hash: str) -> bool:
-    try:
-        inserted_id = session.users_collection().insert_one({
-            'username': username,
-            'password_hash': password_hash
-        }).inserted_id
-    except Exception as e:
-        print(e)
-        return False
+
+    inserted_id = session.users_collection().insert_one({
+        'username': username,
+        'password_hash': password_hash
+    }).inserted_id
 
     return bool(inserted_id)
 
@@ -273,3 +271,19 @@ def get_friend_recommendations(my_id: str, amount: int) -> list[ObjectId]:
     return id_list
 
 
+# Functions related to user profile
+
+def set_about_me(user_id: str, about_me: str) -> bool:
+    modified_count = session.users_collection().update_one(
+        {'_id': ObjectId(user_id)},
+        {'$set': {'about_me': about_me}}
+    ).modified_count
+    return modified_count == 1
+
+
+def set_profile_pic(user_id: str, uuid: UUID) -> bool:
+    modified_count = session.users_collection().update_one(
+        {'_id': ObjectId(user_id)},
+        {'$set': {'profile_pic_uuid': str(uuid)}}
+    ).modified_count
+    return modified_count == 1
