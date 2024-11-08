@@ -44,7 +44,7 @@ class BaseUserModel(BaseModel):
     username: str
     streak: int = 0
     points: int = 0
-    profile_pic_uuid: str = ''
+    profile_pic: str = ''
     about_me: str = ''
 
     model_config = ConfigDict(populate_by_name=True)
@@ -281,16 +281,16 @@ def set_about_me(user_id: str, about_me: str) -> bool:
     return modified_count == 1
 
 
-def set_profile_pic(user_id: str, uuid: str) -> bool:
+def set_profile_pic(user_id: str, profile_pic: str) -> bool:
     modified_count = session.users_collection().update_one(
         {'_id': ObjectId(user_id)},
-        {'$set': {'profile_pic_uuid': uuid}}
+        {'$set': {'profile_pic': profile_pic}}
     ).modified_count
     return modified_count == 1
 
 
 def get_profile_pic(user_id: str) -> str | None:
-    results = session.users_collection().find_one({'_id': ObjectId(user_id)}, {'profile_pic_uuid': 1})
-    if results and 'profile_pic_uuid' in results:
-        return results['profile_pic_uuid']
+    results = session.users_collection().find_one({'_id': ObjectId(user_id)}, {'profile_pic': 1})
+    if results and 'profile_pic' in results:
+        return results['profile_pic']
     return None

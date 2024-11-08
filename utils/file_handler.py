@@ -17,7 +17,7 @@ MIME_TYPES = {
 }
 
 
-async def handle_file_upload(uploaded_file: UploadFile, accepted_mime_types: set[str], max_size_in_mb: int) -> UUID:
+async def handle_file_upload(uploaded_file: UploadFile, accepted_mime_types: set[str], max_size_in_mb: int) -> str:
     max_size = max_size_in_mb * 1024 * 1024
     if uploaded_file.content_type not in accepted_mime_types:
         raise HTTPException(400, {'message': f'Invalid mime type. Accepted mime types are: {accepted_mime_types}'})
@@ -37,13 +37,12 @@ async def handle_file_upload(uploaded_file: UploadFile, accepted_mime_types: set
 
             output_file.write(chunk)
 
-    return uuid
+    return filename
 
 
-def delete_uploaded_file(uuid: str):
-    filename = f'{uuid}.*'
-    matches = glob.glob(os.path.join(UPLOAD_DIR, filename))
-    if matches:
-        os.remove(matches[0])
+def delete_uploaded_file(filename: str):
+    file_path = os.path.join(UPLOAD_DIR, filename)
+    if os.path.exists(file_path):
+        os.remove(file_path)
         return True
     return False

@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import Depends, APIRouter, UploadFile, HTTPException, BackgroundTasks
+from fastapi.responses import JSONResponse
 
 from model.request_body_model import UserIdBody, AboutMeBody
 from controller.auth_controller import TokenData, parse_token
@@ -73,23 +74,24 @@ def set_about_me_section(body: AboutMeBody, token_data: Annotated[TokenData, Dep
 @user_router.post('/profile-pic/')
 async def set_profile_picture(
         file: UploadFile, token_data: Annotated[TokenData, Depends(parse_token)], background_tasks: BackgroundTasks
-):
+) -> JSONResponse:
     accepted_mime_types = {'image/jpeg'}
-    uuid = await file_handler.handle_file_upload(file, accepted_mime_types, 5)
+    filename = await file_handler.handle_file_upload(file, accepted_mime_types, 5)
 
-    prev_uuid = user_model.get_profile_pic(token_data.user_id)
-    if prev_uuid:
-        background_tasks.add_task(file_handler.delete_uploaded_file, prev_uuid)
-    if not user_model.set_profile_pic(token_data.user_id, str(uuid)):
+    prev_filename = user_model.get_profile_pic(token_data.user_id)
+    if prev_filename:
+        background_tasks.add_task(file_handler.delete_uploaded_file, prev_filename)
+    if not user_model.set_profile_pic(token_data.user_id, filename):
         raise HTTPException(400)
+    return JSONResponse({'uploaded_file': filename})
 
 
 @user_router.delete('/profile-pic')
 def delete_profile_picture(token_data: Annotated[TokenData, Depends(parse_token)], background_tasks: BackgroundTasks):
-    prev_uuid = user_model.get_profile_pic(token_data.user_id)
-    if not prev_uuid:
+    prev_filename = user_model.get_profile_pic(token_data.user_id)
+    if not prev_filename:
         raise HTTPException(404)
-    background_tasks.add_task(file_handler.delete_uploaded_file, prev_uuid)
+    background_tasks.add_task(file_handler.delete_uploaded_file, prev_filename)
 
     if not user_model.set_profile_pic(token_data.user_id, ''):
         raise HTTPException(400)
