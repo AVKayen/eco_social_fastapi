@@ -57,7 +57,7 @@ def decline_invitation(body: UserIdBody, token_data: Annotated[TokenData, Depend
         raise HTTPException(400)
 
 
-@user_router.get('/myprofile/')
+@user_router.get('/my-profile/')
 def get_my_profile(token_data: Annotated[TokenData, Depends(parse_token)]) -> user_model.UserModel:
     user = user_model.get_user_by_id(token_data.user_id)
     if not user:
@@ -110,3 +110,12 @@ def get_user(
     if not user:
         raise HTTPException(404)
     return user
+
+
+@user_router.get('/friend-recommendations/{amount}/')
+def get_friend_recommendations(
+        amount: int, token_data: Annotated[TokenData, Depends(parse_token)]
+) -> list[user_model.PublicUserModel]:
+
+    friend_recommendations = user_model.get_friend_recommendation_profiles(token_data.user_id, amount)
+    return friend_recommendations

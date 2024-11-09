@@ -3,7 +3,6 @@ import heapq
 from pydantic import BaseModel, ConfigDict
 from typing import Any, Annotated
 from bson import ObjectId
-from uuid import UUID
 
 from db.session import session
 from datetime import datetime, timezone
@@ -254,9 +253,9 @@ def __get_n_best_recommendations(friends, amount) -> list[FriendCloseness]:
     return closest_friends
 
 
-def get_friend_recommendations(my_id: str, amount: int) -> list[ObjectId]:
+def get_friend_recommendation_profiles(my_id: str, amount: int) -> list[PublicUserModel]:
     my_friends = get_friends(my_id)
-    all_recommendations = {}
+    all_recommendations = set()
     for friend in my_friends:
         friend_friends = get_friends(str(friend))
         all_recommendations |= set(map(lambda x: FriendCloseness(x), friend_friends))
@@ -266,9 +265,10 @@ def get_friend_recommendations(my_id: str, amount: int) -> list[ObjectId]:
 
     top_n = sorted(__get_n_best_recommendations(resulting_recommendations, amount), reverse=True)
 
-    to_string = [recommendation.id for recommendation in top_n]
-    id_list = list(map(ObjectId, to_string))
-    return id_list
+    id_list = [recommendation.id for recommendation in top_n]
+
+    profiles =  [get_public_user(str(friend_id)) for friend_id in id_list]
+    return profiles
 
 
 # Functions related to user profile

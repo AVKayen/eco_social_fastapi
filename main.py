@@ -36,7 +36,7 @@ app.include_router(user_router, prefix='/user')
 
 '''
 TODO: User System
-- implement route for new friend recommendations
+
 
 TODO: Activity System (Addition, Editing, Types)
 User can create activities of certain type, description and photo

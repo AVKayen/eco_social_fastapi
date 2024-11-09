@@ -6,4 +6,4 @@ class UserIdBody(BaseModel):
 
 
 class AboutMeBody(BaseModel):
-    about_me: constr(max_length=64)
+    about_me: constr(max_length=256)
