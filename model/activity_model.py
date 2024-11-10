@@ -29,20 +29,26 @@ class ActivityType(IntEnum):
     other = 0
 
 
-class ActivityModel(BaseModel):
-    _id: str = Field(alias='_id')
-    user_id: Annotated[ObjectId, ObjectIdPydanticAnnotation]
+class ActivityBaseModel(BaseModel):
     activity_type: ActivityType
     title: str
+    caption: str = ''
+
+
+class NewActivityModel(ActivityBaseModel):
+    user_id: Annotated[ObjectId, ObjectIdPydanticAnnotation]
     points_gained: int
     streak_snapshot: int = 0
-    caption: str | None
     images: list[str] = []
+
+
+class ActivityModel(NewActivityModel):
+    id: str = Field(alias='_id')
 
     model_config = ConfigDict(populate_by_name=True)
 
 
-def create_activity(activity: ActivityModel):
+def create_activity(activity: NewActivityModel):
     inserted_id = session.activities_collection().insert_one(activity.model_dump()).inserted_id
     print(inserted_id)
     return inserted_id

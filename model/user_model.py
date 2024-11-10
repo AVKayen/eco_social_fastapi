@@ -61,6 +61,7 @@ class PrivateUserModel(BaseUserModel):  # The way your friends see you
 class UserModel(PrivateUserModel):  # The way only you can see yourself
     incoming_requests: list[FriendshipRequest] = []
     outgoing_requests: list[FriendshipRequest] = []
+    last_time_on_streak: datetime | None = None
 
 
 # Functions related to the user itself
@@ -115,6 +116,17 @@ def get_private_user(user_id: str) -> PrivateUserModel | None:
     return PrivateUserModel(**result)
 
 
+def update_streak(user_id: str, streak: int, last_time_on_streak: datetime) -> bool:
+    modified_count = session.users_collection().update_one(
+        {'_id': ObjectId(user_id)},
+        {'$set': {
+            'streak': streak,
+            'last_time_on_streak': last_time_on_streak
+        }}
+    ).modified_count
+    return modified_count == 1
+
+
 # Functions related to friendship
 def is_user_friend(my_id: str, friend_id: str) -> bool:
     result = session.users_collection().find_one({
@@ -156,7 +168,9 @@ def get_incoming_requests(_id: str) -> list[FriendshipRequest]:
     )
     if result is None:
         return []
-    return result
+
+    requests = list(map(FriendshipRequest, result['incoming_requests'])) if 'incoming_requests' in result else []
+    return requests
 
 
 def get_outgoing_requests(_id: str) -> list[FriendshipRequest]:
@@ -166,7 +180,9 @@ def get_outgoing_requests(_id: str) -> list[FriendshipRequest]:
     )
     if result is None:
         return []
-    return result
+
+    requests = list(map(FriendshipRequest, result['outgoing_requests'])) if 'outgoing_requests' in result else []
+    return requests
 
 
 def send_request(my_id: str, friend_id: str) -> bool:

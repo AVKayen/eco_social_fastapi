@@ -7,6 +7,7 @@ from controller.auth_controller import parse_token, TokenData
 
 from router.auth_router import auth_router
 from router.user_router import user_router
+from router.activity_router import activity_router
 
 
 UPLOAD_DIR = os.getenv('UPLOAD_DIR')
@@ -33,6 +34,7 @@ app.mount('/static', StaticFiles(directory=UPLOAD_DIR), name='static')
 
 app.include_router(auth_router)
 app.include_router(user_router, prefix='/user')
+app.include_router(activity_router, prefix='/activity')
 
 '''
 TODO: User System

@@ -1,4 +1,6 @@
 from pydantic import BaseModel, constr
+from model.activity_model import ActivityBaseModel
+from fastapi import UploadFile
 
 
 class UserIdBody(BaseModel):
@@ -7,3 +9,7 @@ class UserIdBody(BaseModel):
 
 class AboutMeBody(BaseModel):
     about_me: constr(max_length=256)
+
+
+class ActivityBody(ActivityBaseModel):
+    images: list[UploadFile]
