@@ -12,4 +12,4 @@ class AboutMeBody(BaseModel):
 
 
 class ActivityBody(ActivityBaseModel):
-    images: list[UploadFile]
+    images: list[UploadFile] | None = []

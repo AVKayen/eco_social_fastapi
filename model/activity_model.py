@@ -32,13 +32,13 @@ class ActivityType(IntEnum):
 class ActivityBaseModel(BaseModel):
     activity_type: ActivityType
     title: str
-    caption: str = ''
+    caption: str | None = ''
 
 
 class NewActivityModel(ActivityBaseModel):
     user_id: Annotated[ObjectId, ObjectIdPydanticAnnotation]
     points_gained: int
-    streak_snapshot: int = 0
+    streak_snapshot: int
     images: list[str] = []
 
 
