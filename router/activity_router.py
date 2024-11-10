@@ -30,6 +30,7 @@ async def create_activity(
         new_streak = 1
 
     points_gained = 100  # To be implemented
+    new_points = user.points + points_gained
 
     image_filenames = []
     for uploaded_file in form_data.images:
@@ -47,4 +48,9 @@ async def create_activity(
     )
 
     activity_model.create_activity(new_activity)
-    user_model.update_streak(token_data.user_id, new_streak, new_last_time_on_streak)
+    user_model.update_after_activity_creation(
+        user_id=token_data.user_id,
+        new_points=new_points,
+        new_streak=new_streak,
+        new_last_time_on_streak=new_last_time_on_streak
+    )
