@@ -282,6 +282,7 @@ def get_friend_recommendation_profiles(my_id: str, amount: int) -> list[PublicUs
 
     my_friends_set = set(map(FriendCloseness, map(str, my_friends)))
     resulting_recommendations = all_recommendations.difference(my_friends_set)
+    resulting_recommendations.discard(FriendCloseness(my_id))
 
     top_n = sorted(__get_n_best_recommendations(resulting_recommendations, amount), reverse=True)
 
