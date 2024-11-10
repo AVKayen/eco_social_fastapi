@@ -141,11 +141,12 @@ def is_request_incoming(my_id: str, friend_id: str) -> bool:
 def get_friends(_id: str) -> list[ObjectId]:
     result = session.users_collection().find_one(
         {'_id': ObjectId(_id)},
-        {'friends': 1}
+        {'_id': 0, 'friends': 1}
     )
     if result is None:
         return []
-    return result
+    friends = result['friends'] if 'friends' in result else []
+    return friends
 
 
 def get_incoming_requests(_id: str) -> list[FriendshipRequest]:
@@ -267,7 +268,7 @@ def get_friend_recommendation_profiles(my_id: str, amount: int) -> list[PublicUs
 
     id_list = [recommendation.id for recommendation in top_n]
 
-    profiles =  [get_public_user(str(friend_id)) for friend_id in id_list]
+    profiles = [get_public_user(str(friend_id)) for friend_id in id_list]
     return profiles
 
 
