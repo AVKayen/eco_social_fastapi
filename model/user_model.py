@@ -117,15 +117,18 @@ def get_private_user(user_id: str) -> PrivateUserModel | None:
 
 
 def update_after_activity_creation(
-        user_id: str, new_points: int, new_streak: int, new_last_time_on_streak: datetime
+        user_id: str, new_points: int, new_streak: int, new_last_time_on_streak: datetime, activity_id: ObjectId
 ) -> bool:
     modified_count = session.users_collection().update_one(
         {'_id': ObjectId(user_id)},
-        {'$set': {
-            'streak': new_streak,
-            'last_time_on_streak': new_last_time_on_streak,
-            'points': new_points
-        }}
+        {
+            '$set': {
+                'streak': new_streak,
+                'last_time_on_streak': new_last_time_on_streak,
+                'points': new_points
+            },
+            '$push': {'activities': activity_id}
+        }
     ).modified_count
     return modified_count == 1
 

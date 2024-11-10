@@ -1,10 +1,9 @@
 from typing import Annotated
 from datetime import datetime, timezone, timedelta
 
-from fastapi import Depends, APIRouter, Form
+from fastapi import Depends, APIRouter, Form, UploadFile
 from fastapi.responses import JSONResponse
 
-from model.request_body_model import ActivityBody
 from controller.auth_controller import TokenData, parse_token
 import model.user_model as user_model
 import model.activity_model as activity_model
@@ -16,15 +15,19 @@ activity_router = APIRouter()
 
 @activity_router.post('/', status_code=201)
 async def create_activity(
-        form_data: Annotated[ActivityBody, Form()], token_data: Annotated[TokenData, Depends(parse_token)]
+        token_data: Annotated[TokenData, Depends(parse_token)],
+        activity_type: Annotated[activity_model.ActivityType, Form()],
+        title: Annotated[str, Form()],
+        caption: Annotated[str, Form()] = None,
+        images: list[UploadFile] | None = None,
 ):
     user = user_model.get_user_by_id(token_data.user_id)
 
     new_last_time_on_streak = datetime.now(timezone.utc)
 
-    if user.last_day_on_streak is None:
+    if user.last_time_on_streak is None:
         new_streak = 1
-    elif datetime.now(timezone.utc) - user.last_time_on_streak < timedelta(hours=48):
+    elif datetime.now(timezone.utc) - user.last_time_on_streak.replace(tzinfo=timezone.utc) < timedelta(hours=48):
         new_streak = user.streak + 1
     else:
         new_streak = 1
@@ -33,15 +36,16 @@ async def create_activity(
     new_points = user.points + points_gained
 
     image_filenames = []
-    for uploaded_file in form_data.images:
-        filename = await file_handler.handle_file_upload(uploaded_file, {'image/jpg', 'image/png'}, max_size_in_mb=5)
-        image_filenames.append(filename)
+    if images:
+        for uploaded_file in images:
+            filename = await file_handler.handle_file_upload(uploaded_file, {'image/jpg', 'image/png', 'image/jpeg'}, 5)
+            image_filenames.append(filename)
 
     new_activity = activity_model.NewActivityModel(
         user_id=token_data.user_id,
-        activity_type=form_data.activity_type,
-        title=form_data.title,
-        caption=form_data.caption,
+        activity_type=activity_type,
+        title=title,
+        caption=caption,
         streak_snapshot=new_streak,
         points_gained=points_gained,
         images=image_filenames

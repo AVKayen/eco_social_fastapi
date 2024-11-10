@@ -9,7 +9,3 @@ class UserIdBody(BaseModel):
 
 class AboutMeBody(BaseModel):
     about_me: constr(max_length=256)
-
-
-class ActivityBody(ActivityBaseModel):
-    images: list[UploadFile] | None = []
