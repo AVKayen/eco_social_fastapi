@@ -1,4 +1,6 @@
 from pymongo.mongo_client import MongoClient
+from pymongo.synchronous.database import Database
+from pymongo.synchronous.collection import Collection
 from typing import Any
 from dotenv import load_dotenv
 from typing import Dict
@@ -43,13 +45,13 @@ class Session:
     #     self._db.create_collection(name)
     #     self._db.command('collMod', name, validator=validator)
 
-    def db(self):
+    def db(self) -> Database:
         return self._db
 
-    def users_collection(self):
+    def users_collection(self) -> Collection:
         return self._db.users
 
-    def activities_collection(self):
+    def activities_collection(self) -> Collection:
         return self._db.activities
 
 
