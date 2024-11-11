@@ -10,4 +10,3 @@ class Settings(BaseSettings):
 
 
 settings: Settings = Settings()
-print(settings)

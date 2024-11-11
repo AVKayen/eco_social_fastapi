@@ -13,9 +13,6 @@ MIME_TYPES = {
 }
 
 
-os.makedirs(settings.upload_dir, exist_ok=True)
-
-
 async def handle_file_upload(uploaded_file: UploadFile, accepted_mime_types: set[str], max_size_in_mb: int) -> str:
     max_size = max_size_in_mb * 1024 * 1024
     if uploaded_file.content_type not in accepted_mime_types:
