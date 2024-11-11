@@ -134,6 +134,14 @@ def update_after_activity_creation(
     return modified_count == 1
 
 
+def increment_user_points(user_id: str, amount: int) -> bool:
+    modified_count = session.users_collection().update_one(
+        {'_id': ObjectId(user_id)},
+        {'$inc': {'points': amount}}
+    ).modified_count
+    return modified_count == 1
+
+
 # Functions related to friendship
 def is_user_friend(my_id: str, friend_id: str) -> bool:
     result = session.users_collection().find_one({

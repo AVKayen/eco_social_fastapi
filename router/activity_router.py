@@ -84,8 +84,11 @@ def get_feed(
 def get_activities(
         user_id: ObjectIdStr, token_data: Annotated[TokenData, Depends(parse_token)]
 ) -> list[activity_model.ActivityModel]:
-    activities = activity_model.get_user_activities(user_id)
 
+    if user_id != token_data.user_id and not user_model.is_user_friend(token_data.user_id, user_id):
+        raise HTTPException(403)
+
+    activities = activity_model.get_user_activities(user_id)
     return activities
 
 
@@ -98,3 +101,15 @@ def get_activity(
     if activity_owner != token_data.user_id and not user_model.is_user_friend(token_data.user_id, activity_owner):
         raise HTTPException(403)
     return activity
+
+
+@activity_router.delete('/{activity_id}')
+def delete_activity(activity_id: ObjectIdStr, token_data: Annotated[TokenData, Depends(parse_token)]):
+    activity = activity_model.get_activity_by_id(activity_id)
+    activity_owner = str(activity.user_id)
+    if activity_owner != token_data.user_id:
+        raise HTTPException(403)
+
+    activity_points = activity.points_gained
+    user_model.increment_user_points(token_data.user_id, -activity_points)
+    activity_model.delete_activity(activity_id)

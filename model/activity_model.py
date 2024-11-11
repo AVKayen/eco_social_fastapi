@@ -89,6 +89,11 @@ def get_activity_by_id(activity_id: str) -> ActivityModel | None:
     return ActivityModel(**result)
 
 
+def delete_activity(activity_id: str) -> bool:
+    deleted_count = session.activities_collection().delete_one({'_id': ObjectId(activity_id)}).deleted_count
+    return deleted_count == 1
+
+
 def get_user_activities(user_id: str) -> list[ActivityModel]:
     results = session.activities_collection().find({'user_id': ObjectId(user_id)}).sort('created_at', -1)
 
