@@ -54,7 +54,7 @@ class PublicUserModel(BaseUserModel):  # The way anyone can see you
 
 
 class PrivateUserModel(BaseUserModel):  # The way your friends see you
-    activities: list[str] = []
+    activities: list[Annotated[ObjectId, ObjectIdPydanticAnnotation]] = []
     friends: list[Annotated[ObjectId, ObjectIdPydanticAnnotation]] = []
 
 

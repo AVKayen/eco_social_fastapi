@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import Depends, APIRouter, UploadFile, HTTPException, BackgroundTasks
 from fastapi.responses import JSONResponse
 
-from model.request_body_model import UserIdBody, AboutMeBody
+from model.request_model import UserIdBody, AboutMeBody
 from controller.auth_controller import TokenData, parse_token
 import model.user_model as user_model
 

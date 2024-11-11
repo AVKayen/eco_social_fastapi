@@ -1,12 +1,14 @@
 from typing import Annotated
 from datetime import datetime, timezone, timedelta
+from bson import ObjectId
 
-from fastapi import Depends, APIRouter, Form, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi import Depends, APIRouter, Form, UploadFile, HTTPException
+from pydantic import Field
 
 from controller.auth_controller import TokenData, parse_token
 import model.user_model as user_model
 import model.activity_model as activity_model
+from model.request_model import ObjectIdStr
 
 import utils.file_handler as file_handler
 
@@ -51,10 +53,22 @@ async def create_activity(
         images=image_filenames
     )
 
-    activity_model.create_activity(new_activity)
+    activity_id = activity_model.create_activity(new_activity)
     user_model.update_after_activity_creation(
         user_id=token_data.user_id,
         new_points=new_points,
         new_streak=new_streak,
-        new_last_time_on_streak=new_last_time_on_streak
+        new_last_time_on_streak=new_last_time_on_streak,
+        activity_id=ObjectId(activity_id)
     )
+
+
+@activity_router.get('/{activity_id}')
+def get_activity(
+        activity_id: ObjectIdStr, token_data: Annotated[TokenData, Depends(parse_token)]
+) -> activity_model.ActivityModel:
+    activity = activity_model.get_activity_by_id(activity_id)
+    activity_owner = str(activity.user_id)
+    if activity_owner != token_data.user_id and not user_model.is_user_friend(token_data.user_id, activity_owner):
+        raise HTTPException(403)
+    return activity

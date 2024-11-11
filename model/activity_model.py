@@ -53,7 +53,6 @@ class ActivityModel(NewActivityModel):
 
 def create_activity(activity: NewActivityModel):
     inserted_id = session.activities_collection().insert_one(activity.model_dump()).inserted_id
-    print(inserted_id)
     return inserted_id
 
 
@@ -79,5 +78,5 @@ def get_feed(user_id: str) -> list[ActivityModel]:
     feed: list[ActivityModel] = []
     for friend in friends:
         feed.extend(get_user_activities(str(friend)))
-    feed.sort(key = lambda activity: activity.created_at, reverse = True)
+    feed.sort(key=lambda activity: activity.created_at, reverse=True)
     return feed

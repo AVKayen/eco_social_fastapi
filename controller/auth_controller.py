@@ -102,7 +102,7 @@ def create_token(form_data: OAuth2PasswordRequestForm) -> Token:
     return Token(access_token=access_token, token_type="bearer")
 
 
-def signup_user(form_data: OAuth2PasswordRequestForm) -> bool:
+def create_account(form_data: OAuth2PasswordRequestForm) -> bool:
     if get_user_id_by_username(form_data.username):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='Username taken')
     password_hash = get_password_hash(form_data.password)

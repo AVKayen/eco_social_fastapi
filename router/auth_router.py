@@ -2,17 +2,17 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from typing import Annotated
 
-from controller.auth_controller import Token, create_token, signup_user
+import controller.auth_controller as auth_controller
 
 auth_router = APIRouter()
 
 
 @auth_router.post('/token')
-def token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> Token:
-    return create_token(form_data)
+def create_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> auth_controller.Token:
+    return auth_controller.create_token(form_data)
 
 
 @auth_router.post('/signup', status_code=201)
-def token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> None:
-    if not signup_user(form_data):
+def signup_user(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> None:
+    if not auth_controller.create_account(form_data):
         raise HTTPException(400)
