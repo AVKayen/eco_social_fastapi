@@ -72,3 +72,21 @@ def get_activity(
     if activity_owner != token_data.user_id and not user_model.is_user_friend(token_data.user_id, activity_owner):
         raise HTTPException(403)
     return activity
+
+
+@activity_router.get('/activities/{user_id}')
+def get_activities(
+        user_id: ObjectIdStr, token_data: Annotated[TokenData, Depends(parse_token)]
+) -> list[activity_model.ActivityModel]:
+    activities = activity_model.get_user_activities(user_id)
+
+    return activities
+
+
+@activity_router.get('/feed')
+def get_feed(
+        token_data: Annotated[TokenData, Depends(parse_token)]
+) -> list[activity_model.ActivityModel]:
+    feed = activity_model.get_feed(token_data.user_id)
+
+    return feed

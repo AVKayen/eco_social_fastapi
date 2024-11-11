@@ -40,6 +40,7 @@ TODO: User System
 
 
 TODO: Activity System (Addition, Editing, Types)
+add points
 User can create activities of certain type, description and photo
 Types:
 - bus_instead_of_car
