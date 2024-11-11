@@ -24,6 +24,7 @@ async def create_activity(
         caption: Annotated[str, Form()] = None,
         images: list[UploadFile] | None = None,
 ):
+    print(activity_type)
     if images and len(images) > settings.max_images_per_activity:
         raise HTTPException(400, f'Too many files uploaded: {len(images)}. Max {settings.max_images_per_activity}.')
 
@@ -66,9 +67,9 @@ async def create_activity(
         new_last_time_on_streak=new_last_time_on_streak,
         activity_id=activity_id
     )
-
-    for uploaded_file, filename in zip(images, image_filenames):
-        await file_handler.save_uploaded_file(uploaded_file, filename)
+    if images:
+        for uploaded_file, filename in zip(images, image_filenames):
+            await file_handler.save_uploaded_file(uploaded_file, filename)
 
 
 @activity_router.get('/feed')
