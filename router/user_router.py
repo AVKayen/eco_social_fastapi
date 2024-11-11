@@ -76,12 +76,15 @@ def set_about_me_section(body: AboutMeBody, token_data: Annotated[TokenData, Dep
 async def set_profile_picture(
         file: UploadFile, token_data: Annotated[TokenData, Depends(parse_token)], background_tasks: BackgroundTasks
 ) -> JSONResponse:
+
     accepted_mime_types = {'image/jpeg'}
-    filename = await file_handler.handle_file_upload(file, accepted_mime_types, 5)
+    filename = file_handler.handle_file_upload(file, accepted_mime_types, 5)
+    background_tasks.add_task(file_handler.save_uploaded_file, file, filename)
 
     prev_filename = user_model.get_profile_pic(token_data.user_id)
     if prev_filename:
         background_tasks.add_task(file_handler.delete_uploaded_file, prev_filename)
+
     if not user_model.set_profile_pic(token_data.user_id, filename):
         raise HTTPException(400)
     return JSONResponse({'uploaded_file': filename})

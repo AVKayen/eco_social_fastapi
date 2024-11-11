@@ -2,7 +2,7 @@ from typing import Annotated
 from datetime import datetime, timezone, timedelta
 from bson import ObjectId
 
-from fastapi import Depends, APIRouter, Form, UploadFile, HTTPException
+from fastapi import Depends, APIRouter, Form, UploadFile, HTTPException, BackgroundTasks
 
 from controller.auth_controller import TokenData, parse_token
 import model.user_model as user_model
@@ -17,6 +17,7 @@ activity_router = APIRouter()
 
 @activity_router.post('/', status_code=201)
 async def create_activity(
+    background_tasks: BackgroundTasks,
         token_data: Annotated[TokenData, Depends(parse_token)],
         activity_type: Annotated[activity_model.ActivityType, Form()],
         title: Annotated[str, Form()],
@@ -37,11 +38,13 @@ async def create_activity(
     points_gained = 100  # To be implemented
     new_points = user.points + points_gained
 
+    print(images)
     image_filenames = []
     if images:
         for uploaded_file in images:
-            filename = await file_handler.handle_file_upload(uploaded_file, {'image/jpg', 'image/png', 'image/jpeg'}, 5)
+            filename = file_handler.handle_file_upload(uploaded_file, {'image/jpg', 'image/png', 'image/jpeg'}, 5)
             image_filenames.append(filename)
+            background_tasks.add_task(file_handler.save_uploaded_file, uploaded_file, filename)
 
     new_activity = activity_model.NewActivityModel(
         user_id=token_data.user_id,
@@ -61,6 +64,8 @@ async def create_activity(
         new_last_time_on_streak=new_last_time_on_streak,
         activity_id=ObjectId(activity_id)
     )
+
+    background_tasks.tasks.clear()
 
 
 @activity_router.get('/{activity_id}')
