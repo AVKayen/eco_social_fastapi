@@ -13,7 +13,9 @@ MIME_TYPES = {
 }
 
 
-def handle_file_upload(uploaded_file: UploadFile, accepted_mime_types: set[str], max_size_in_mb: int) -> str:
+def handle_file_upload(
+        uploaded_file: UploadFile, accepted_mime_types: set[str], max_size_in_mb: int = settings.max_image_size_mb
+) -> str:
     max_size = max_size_in_mb * 1024 * 1024
 
     if uploaded_file.size > max_size:

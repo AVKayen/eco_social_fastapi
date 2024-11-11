@@ -2,7 +2,7 @@ from typing import Annotated
 from datetime import datetime, timezone, timedelta
 from bson import ObjectId
 
-from fastapi import Depends, APIRouter, Form, UploadFile, HTTPException, BackgroundTasks
+from fastapi import Depends, APIRouter, Form, UploadFile, HTTPException
 
 from controller.auth_controller import TokenData, parse_token
 import model.user_model as user_model
@@ -10,6 +10,7 @@ import model.activity_model as activity_model
 from model.request_model import ObjectIdStr
 
 import utils.file_handler as file_handler
+from config.settings import settings
 
 
 activity_router = APIRouter()
@@ -17,13 +18,15 @@ activity_router = APIRouter()
 
 @activity_router.post('/', status_code=201)
 async def create_activity(
-    background_tasks: BackgroundTasks,
         token_data: Annotated[TokenData, Depends(parse_token)],
         activity_type: Annotated[activity_model.ActivityType, Form()],
         title: Annotated[str, Form()],
         caption: Annotated[str, Form()] = None,
         images: list[UploadFile] | None = None,
 ):
+    if images and len(images) > settings.max_images_per_activity:
+        raise HTTPException(400, f'Too many files uploaded: {len(images)}. Max {settings.max_images_per_activity}.')
+
     user = user_model.get_user_by_id(token_data.user_id)
 
     new_last_time_on_streak = datetime.now(timezone.utc)
@@ -41,7 +44,7 @@ async def create_activity(
     image_filenames = []
     if images:
         for uploaded_file in images:
-            filename = file_handler.handle_file_upload(uploaded_file, {'image/jpg', 'image/png', 'image/jpeg'}, 5)
+            filename = file_handler.handle_file_upload(uploaded_file, {'image/jpg', 'image/png', 'image/jpeg'})
             image_filenames.append(filename)
 
     new_activity = activity_model.NewActivityModel(
