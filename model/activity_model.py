@@ -89,6 +89,18 @@ def get_activity_by_id(activity_id: str) -> ActivityModel | None:
     return ActivityModel(**result)
 
 
+def update_activity(activity_id: str, title: str, caption: str, images: list[str]) -> bool:
+    modified_count = session.activities_collection().update_one(
+        {'_id': ObjectId(activity_id)},
+        {'$set': {
+            'title': title,
+            'caption': caption,
+            'images': images
+        }}
+    ).modified_count
+    return modified_count == 1
+
+
 def delete_activity(activity_id: str) -> bool:
     deleted_count = session.activities_collection().delete_one({'_id': ObjectId(activity_id)}).deleted_count
     return deleted_count == 1

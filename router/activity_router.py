@@ -2,7 +2,7 @@ from typing import Annotated
 from datetime import datetime, timezone, timedelta
 from bson import ObjectId
 
-from fastapi import Depends, APIRouter, Form, UploadFile, HTTPException
+from fastapi import Depends, APIRouter, Form, UploadFile, HTTPException, BackgroundTasks
 
 from controller.auth_controller import TokenData, parse_token
 import model.user_model as user_model
@@ -11,6 +11,9 @@ from model.request_model import ObjectIdStr
 
 import utils.file_handler as file_handler
 from config.settings import settings
+
+
+ACCEPTED_MIME_TYPES = {'image/jpg', 'image/png', 'image/jpeg'}
 
 
 activity_router = APIRouter()
@@ -44,7 +47,7 @@ async def create_activity(
     image_filenames = []
     if images:
         for uploaded_file in images:
-            filename = file_handler.handle_file_upload(uploaded_file, {'image/jpg', 'image/png', 'image/jpeg'})
+            filename = file_handler.handle_file_upload(uploaded_file, ACCEPTED_MIME_TYPES)
             image_filenames.append(filename)
 
     new_activity = activity_model.NewActivityModel(
@@ -97,15 +100,63 @@ def get_activity(
         activity_id: ObjectIdStr, token_data: Annotated[TokenData, Depends(parse_token)]
 ) -> activity_model.ActivityModel:
     activity = activity_model.get_activity_by_id(activity_id)
+    if not activity:
+        raise HTTPException(404)
+
     activity_owner = str(activity.user_id)
     if activity_owner != token_data.user_id and not user_model.is_user_friend(token_data.user_id, activity_owner):
         raise HTTPException(403)
     return activity
 
 
+@activity_router.patch('/{activity_id}')
+async def update_activity(
+        background_taks: BackgroundTasks,
+        activity_id: ObjectIdStr,
+        token_data: Annotated[TokenData, Depends(parse_token)],
+        title: Annotated[str, Form()] | None = None,
+        caption: Annotated[str, Form()] | None = None,
+        new_images: list[UploadFile] | None = None,
+        images_to_delete: list[str] | None = None
+):
+    activity = activity_model.get_activity_by_id(activity_id)
+    if not activity:
+        raise HTTPException(404)
+    if str(activity.user_id) != token_data.user_id:
+        raise HTTPException(403)
+
+    if new_images is None:
+        new_images = []
+    if images_to_delete is None:
+        images_to_delete = []
+
+    if len(activity.images) + len(new_images) - len(images_to_delete) > settings.max_images_per_activity:
+        raise HTTPException(400, f'Exceeeded the maximum number of images per activity '
+                                 f'({settings.max_images_per_activity}).')
+
+    new_filenames = []
+    for uploaded_image in new_images:
+        filename = file_handler.handle_file_upload(uploaded_image, ACCEPTED_MIME_TYPES)
+        new_filenames.append(filename)
+
+    title = title or activity.title
+    caption = caption or activity.caption
+    images = list(set(activity.images).union(set(new_filenames)).difference(set(images_to_delete)))
+
+    activity_model.update_activity(activity_id, title, caption, images)
+
+    for new_image, new_filename in zip(new_images, new_filenames):
+        await file_handler.save_uploaded_file(new_image, new_filename)
+
+    for filename in images_to_delete:
+        background_taks.add_task(file_handler.delete_uploaded_file, filename)
+
+
 @activity_router.delete('/{activity_id}')
 def delete_activity(activity_id: ObjectIdStr, token_data: Annotated[TokenData, Depends(parse_token)]):
     activity = activity_model.get_activity_by_id(activity_id)
+    if not activity:
+        raise HTTPException(404)
     activity_owner = str(activity.user_id)
     if activity_owner != token_data.user_id:
         raise HTTPException(403)
