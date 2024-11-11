@@ -46,7 +46,7 @@ class NewActivityModel(ActivityBaseModel):
 
 
 class ActivityModel(NewActivityModel):
-    id: str = Field(alias='_id')
+    id: Annotated[ObjectId, ObjectIdPydanticAnnotation] = Field(alias='_id')
 
     model_config = ConfigDict(populate_by_name=True)
 
