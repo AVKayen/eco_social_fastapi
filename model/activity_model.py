@@ -15,7 +15,7 @@ class ActivityType(IntEnum):
     pub_transport_instead_of_car = 11
     bike_instead_of_car = 12
     walk_instead_of_car = 13
-    train_instead_of_plane = 14
+    train_instead_of_car = 14
 
     plant_tree = 21
     plant_other = 22
@@ -29,6 +29,30 @@ class ActivityType(IntEnum):
     reduce_food_waste = 43
 
     other = 0
+
+
+activity_points = {
+    ActivityType.trash_picking: 400,
+
+    ActivityType.pub_transport_instead_of_car: 100,
+    ActivityType.train_instead_of_car: 100,
+    ActivityType.bike_instead_of_car: 300,
+    ActivityType.walk_instead_of_car: 300,
+
+    ActivityType.plant_tree: 1000,
+    ActivityType.plant_other: 500,
+
+    ActivityType.buy_local: 200,
+    ActivityType.buy_second_hand: 200,
+    ActivityType.sell_unused: 400,
+
+    ActivityType.reduce_water: 150,
+    ActivityType.reduce_energy: 150,
+    ActivityType.reduce_food_waste: 100,
+
+    ActivityType.other: 0
+
+}
 
 
 class ActivityBaseModel(BaseModel):
