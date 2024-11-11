@@ -38,7 +38,7 @@ async def create_activity(
     else:
         new_streak = 1
 
-    points_gained = 100  # To be implemented
+    points_gained = activity_model.activity_points[activity_type] or 0
     new_points = user.points + points_gained
 
     image_filenames = []
