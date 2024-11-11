@@ -24,14 +24,8 @@ async def create_activity(
         caption: Annotated[str, Form()] = None,
         images: list[UploadFile] | None = None,
 ):
-<<<<<<< HEAD
-    print(activity_type)
     if images and len(images) > settings.max_images_per_activity:
         raise HTTPException(400, f'Too many files uploaded: {len(images)}. Max {settings.max_images_per_activity}.')
-=======
-    if images and len(images) > settings.MAX_IMAGES_PER_ACTIVITY:
-        raise HTTPException(400, f'Too many files uploaded: {len(images)}. Max {settings.MAX_IMAGES_PER_ACTIVITY}.')
->>>>>>> 47369f666c29d1f97f753f4651af920315345d8e
 
     user = user_model.get_user_by_id(token_data.user_id)
 
