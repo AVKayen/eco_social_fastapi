@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from model.request_model import UserIdBody, AboutMeBody
 from controller.auth_controller import TokenData, parse_token
 import model.user_model as user_model
+from pydantic import Field
 
 import utils.file_handler as file_handler
 
@@ -114,7 +115,7 @@ def get_user(
 
 @user_router.get('/friend-recommendations/{amount}/')
 def get_friend_recommendations(
-        amount: int, token_data: Annotated[TokenData, Depends(parse_token)]
+        amount: Annotated[int, Field(le=10)], token_data: Annotated[TokenData, Depends(parse_token)]
 ) -> list[user_model.PublicUserModel]:
 
     friend_recommendations = user_model.get_friend_recommendation_profiles(token_data.user_id, amount)

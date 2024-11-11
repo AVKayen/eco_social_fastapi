@@ -5,10 +5,11 @@ import jwt
 from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel
 from typing import Annotated, Dict, Any
-import os
 from datetime import datetime, timedelta, timezone
 
 from model.user_model import get_user_password_by_username, get_user_id_by_username, create_user
+
+from config.settings import settings
 
 
 class Token(BaseModel):
@@ -23,9 +24,6 @@ class TokenData(BaseModel):
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
-TOKEN_SECRET = os.getenv('TOKEN_SECRET')
-if not TOKEN_SECRET:
-    raise Exception('No token secret specified in the env variables.')
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -57,7 +55,7 @@ def create_access_token(payload: Dict[str, Any], expires_delta: timedelta | None
         expire = datetime.now(timezone.utc) + timedelta(minutes=15)
 
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, TOKEN_SECRET, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, settings.token_secret, algorithm=ALGORITHM)
     return encoded_jwt
 
 
@@ -68,7 +66,7 @@ def parse_token(token: Annotated[str, Depends(oauth2_scheme)]) -> TokenData:
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, TOKEN_SECRET, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, settings.token_secret, algorithms=[ALGORITHM])
     except InvalidTokenError:
         raise credentials_exception
 

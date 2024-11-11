@@ -9,11 +9,10 @@ from router.auth_router import auth_router
 from router.user_router import user_router
 from router.activity_router import activity_router
 
+from config.settings import settings
 
-UPLOAD_DIR = os.getenv('UPLOAD_DIR')
-if not UPLOAD_DIR:
-    raise Exception('No upload directory specified in the env variables')
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+os.makedirs(settings.upload_dir, exist_ok=True)
 
 
 app = FastAPI()
@@ -29,7 +28,7 @@ async def say_hello(token_data: TokenData = Depends(parse_token)):
     return {'message': f'Hello {token_data.username}'}
 
 
-app.mount('/static', StaticFiles(directory=UPLOAD_DIR), name='static')
+app.mount('/static', StaticFiles(directory=settings.upload_dir), name='static')
 
 
 app.include_router(auth_router)

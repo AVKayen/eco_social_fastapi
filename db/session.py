@@ -2,13 +2,8 @@ from pymongo.mongo_client import MongoClient
 from pymongo.synchronous.database import Database
 from pymongo.synchronous.collection import Collection
 from typing import Any
-from dotenv import load_dotenv
-from typing import Dict
 
-import os
-
-
-ENV_NAME = 'DB_URI'
+from config.settings import settings
 
 
 # COLLECTIONS = [
@@ -34,7 +29,7 @@ ENV_NAME = 'DB_URI'
 
 class Session:
     def __init__(self, conn_string: str):
-        self._client: MongoClient[Dict[str, Any]] = MongoClient(conn_string)
+        self._client: MongoClient[dict[str, Any]] = MongoClient(conn_string)
         self._db = self._client.get_database('eco_social')
         print('Connected to the MongoDB')
 
@@ -55,8 +50,4 @@ class Session:
         return self._db.activities
 
 
-load_dotenv()
-conn_str = os.getenv(ENV_NAME)
-if not conn_str:
-    raise Exception('No connection string for MongoDB specified.')
-session: Session = Session(conn_str)
+session: Session = Session(settings.db_uri)
