@@ -66,17 +66,21 @@ def get_activity_by_id(activity_id: str) -> ActivityModel | None:
 
 
 def get_user_activities(user_id: str) -> list[ActivityModel]:
-    activity_ids = get_user_by_id(user_id).activities
-    result = [get_activity_by_id(str(activity_id)) for activity_id in activity_ids]
+    results = session.activities_collection().find({'user_id': ObjectId(user_id)}).sort('created_at', -1)
 
-    return result
+    if results is None:
+        return []
+
+    activities = [ActivityModel(**result) for result in results]
+    return activities
 
 
 def get_feed(user_id: str) -> list[ActivityModel]:
     friends = get_user_by_id(user_id).friends
 
-    feed: list[ActivityModel] = []
-    for friend in friends:
-        feed.extend(get_user_activities(str(friend)))
-    feed.sort(key=lambda activity: activity.created_at, reverse=True)
-    return feed
+    results = session.activities_collection().find({'user_id': {'$in': friends}}).sort('created_at', -1)
+    if results is None:
+        return []
+
+    activities = [ActivityModel(**result) for result in results]
+    return activities

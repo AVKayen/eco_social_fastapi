@@ -58,27 +58,26 @@ async def create_activity(
     )
 
     activity_id = activity_model.create_activity(new_activity)
+
     user_model.update_after_activity_creation(
         user_id=token_data.user_id,
         new_points=new_points,
         new_streak=new_streak,
         new_last_time_on_streak=new_last_time_on_streak,
-        activity_id=ObjectId(activity_id)
+        activity_id=activity_id
     )
 
     for uploaded_file, filename in zip(images, image_filenames):
         await file_handler.save_uploaded_file(uploaded_file, filename)
 
 
-@activity_router.get('/{activity_id}')
-def get_activity(
-        activity_id: ObjectIdStr, token_data: Annotated[TokenData, Depends(parse_token)]
-) -> activity_model.ActivityModel:
-    activity = activity_model.get_activity_by_id(activity_id)
-    activity_owner = str(activity.user_id)
-    if activity_owner != token_data.user_id and not user_model.is_user_friend(token_data.user_id, activity_owner):
-        raise HTTPException(403)
-    return activity
+@activity_router.get('/feed')
+def get_feed(
+        token_data: Annotated[TokenData, Depends(parse_token)]
+) -> list[activity_model.ActivityModel]:
+    feed = activity_model.get_feed(token_data.user_id)
+
+    return feed
 
 
 @activity_router.get('/activities/{user_id}')
@@ -90,10 +89,12 @@ def get_activities(
     return activities
 
 
-@activity_router.get('/feed')
-def get_feed(
-        token_data: Annotated[TokenData, Depends(parse_token)]
-) -> list[activity_model.ActivityModel]:
-    feed = activity_model.get_feed(token_data.user_id)
-
-    return feed
+@activity_router.get('/{activity_id}')
+def get_activity(
+        activity_id: ObjectIdStr, token_data: Annotated[TokenData, Depends(parse_token)]
+) -> activity_model.ActivityModel:
+    activity = activity_model.get_activity_by_id(activity_id)
+    activity_owner = str(activity.user_id)
+    if activity_owner != token_data.user_id and not user_model.is_user_friend(token_data.user_id, activity_owner):
+        raise HTTPException(403)
+    return activity

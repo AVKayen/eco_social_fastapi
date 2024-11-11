@@ -105,7 +105,7 @@ def get_public_user(user_id: str) -> PublicUserModel | None:
     if not result:
         return None
     friend_count = len(result['friends']) if 'friends' in result.keys() else 0
-    result['friend_count'] = friend_count
+    result = {**result, 'friend_count': friend_count}
     return PublicUserModel(**result)
 
 
@@ -119,6 +119,7 @@ def get_private_user(user_id: str) -> PrivateUserModel | None:
 def update_after_activity_creation(
         user_id: str, new_points: int, new_streak: int, new_last_time_on_streak: datetime, activity_id: ObjectId
 ) -> bool:
+
     modified_count = session.users_collection().update_one(
         {'_id': ObjectId(user_id)},
         {
