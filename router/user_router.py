@@ -79,7 +79,7 @@ async def set_profile_picture(
 
     accepted_mime_types = {'image/jpeg'}
     filename = file_handler.handle_file_upload(file, accepted_mime_types, 5)
-    background_tasks.add_task(file_handler.save_uploaded_file, file, filename)
+    await file_handler.save_uploaded_file(file, filename)
 
     prev_filename = user_model.get_profile_pic(token_data.user_id)
     if prev_filename:

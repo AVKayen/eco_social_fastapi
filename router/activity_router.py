@@ -38,13 +38,11 @@ async def create_activity(
     points_gained = 100  # To be implemented
     new_points = user.points + points_gained
 
-    print(images)
     image_filenames = []
     if images:
         for uploaded_file in images:
             filename = file_handler.handle_file_upload(uploaded_file, {'image/jpg', 'image/png', 'image/jpeg'}, 5)
             image_filenames.append(filename)
-            background_tasks.add_task(file_handler.save_uploaded_file, uploaded_file, filename)
 
     new_activity = activity_model.NewActivityModel(
         user_id=token_data.user_id,
@@ -65,7 +63,8 @@ async def create_activity(
         activity_id=ObjectId(activity_id)
     )
 
-    background_tasks.tasks.clear()
+    for uploaded_file, filename in zip(images, image_filenames):
+        await file_handler.save_uploaded_file(uploaded_file, filename)
 
 
 @activity_router.get('/{activity_id}')

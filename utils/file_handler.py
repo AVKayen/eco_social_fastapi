@@ -29,6 +29,7 @@ def handle_file_upload(uploaded_file: UploadFile, accepted_mime_types: set[str],
 
 
 async def save_uploaded_file(uploaded_file: UploadFile, filename: str) -> bool:
+
     with open(os.path.join(settings.upload_dir, filename), 'wb') as output_file:
         while chunk := await uploaded_file.read(CHUNK_SIZE):
             output_file.write(chunk)
