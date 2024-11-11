@@ -67,7 +67,7 @@ def get_activity_by_id(activity_id: str) -> ActivityModel | None:
 
 def get_user_activities(user_id: str) -> list[ActivityModel]:
     activity_ids = get_user_by_id(user_id).activities
-    result = [get_activity_by_id(activity_id) for activity_id in activity_ids]
+    result = [get_activity_by_id(str(activity_id)) for activity_id in activity_ids]
 
     return result
 
