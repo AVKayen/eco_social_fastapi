@@ -278,21 +278,23 @@ def __get_n_best_recommendations(friends, amount) -> list[FriendCloseness]:
 
 
 def get_friend_recommendation_profiles(my_id: str, amount: int) -> list[PublicUserModel]:
-    my_friends = get_friends(my_id)
+    my_friends = list(map(str, get_friends(my_id)))
     all_recommendations = set()
     for friend in my_friends:
-        friend_friends = get_friends(str(friend))
-        all_recommendations |= set(map(lambda x: FriendCloseness(x), friend_friends))
+        friend_friends = get_friends(friend)
+        all_recommendations |= set(map(lambda x: FriendCloseness(str(x)), friend_friends))
 
-    my_friends_set = set(map(FriendCloseness, map(str, my_friends)))
-    resulting_recommendations = all_recommendations.difference(my_friends_set)
-    resulting_recommendations.discard(FriendCloseness(my_id))
+    to_discard = my_friends
+    to_discard.append(my_id)
+
+    to_discard_set = set(map(FriendCloseness, to_discard))
+    resulting_recommendations = all_recommendations - to_discard_set
 
     top_n = sorted(__get_n_best_recommendations(resulting_recommendations, amount), reverse=True)
 
     id_list = [recommendation.id for recommendation in top_n]
 
-    profiles = [get_public_user(str(friend_id)) for friend_id in id_list]
+    profiles = [get_public_user(friend_id) for friend_id in id_list]
     return profiles
 
 
