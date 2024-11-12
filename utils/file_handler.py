@@ -14,7 +14,9 @@ MIME_TYPES = {
 
 
 def handle_file_upload(
-        uploaded_file: UploadFile, accepted_mime_types: set[str], max_size_in_mb: int = settings.max_image_size_mb
+        uploaded_file: UploadFile,
+        accepted_mime_types: set[str] = MIME_TYPES.keys(),
+        max_size_in_mb: int = settings.max_image_size_mb
 ) -> str:
     max_size = max_size_in_mb * 1024 * 1024
 

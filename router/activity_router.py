@@ -1,6 +1,5 @@
 from typing import Annotated
 from datetime import datetime, timezone, timedelta
-from bson import ObjectId
 
 from fastapi import Depends, APIRouter, Form, UploadFile, HTTPException, BackgroundTasks
 
@@ -11,9 +10,6 @@ from model.request_model import ObjectIdStr
 
 import utils.file_handler as file_handler
 from config.settings import settings
-
-
-ACCEPTED_MIME_TYPES = {'image/jpg', 'image/png', 'image/jpeg'}
 
 
 activity_router = APIRouter()
@@ -47,7 +43,7 @@ async def create_activity(
     image_filenames = []
     if images:
         for uploaded_file in images:
-            filename = file_handler.handle_file_upload(uploaded_file, ACCEPTED_MIME_TYPES)
+            filename = file_handler.handle_file_upload(uploaded_file)
             image_filenames.append(filename)
 
     new_activity = activity_model.NewActivityModel(
@@ -140,7 +136,7 @@ async def update_activity(
 
     new_filenames = []
     for new_image in new_images:
-        filename = file_handler.handle_file_upload(new_image, ACCEPTED_MIME_TYPES)
+        filename = file_handler.handle_file_upload(new_image)
         new_filenames.append(filename)
 
     title = title or activity.title
