@@ -130,6 +130,9 @@ async def update_activity(
     if images_to_delete is None:
         images_to_delete = []
 
+    if set(images_to_delete).difference(set(activity.images)) != set():
+        raise Exception(404, 'Images to delete do not match images existing in this activity.')
+
     if len(activity.images) + len(new_images) - len(images_to_delete) > settings.max_images_per_activity:
         raise HTTPException(400, f'Exceeeded the maximum number of images per activity '
                                  f'({settings.max_images_per_activity}).')
