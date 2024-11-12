@@ -52,6 +52,7 @@ async def create_activity(
 
     new_activity = activity_model.NewActivityModel(
         user_id=token_data.user_id,
+        username=user.username,
         activity_type=activity_type,
         title=title,
         caption=caption,

@@ -64,6 +64,7 @@ class ActivityBaseModel(BaseModel):
 
 class NewActivityModel(ActivityBaseModel):
     user_id: Annotated[ObjectId, ObjectIdPydanticAnnotation]
+    username: str
     points_gained: int
     streak_snapshot: int
     images: list[str] = []
