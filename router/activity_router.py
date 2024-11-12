@@ -135,8 +135,8 @@ async def update_activity(
                                  f'({settings.max_images_per_activity}).')
 
     new_filenames = []
-    for uploaded_image in new_images:
-        filename = file_handler.handle_file_upload(uploaded_image, ACCEPTED_MIME_TYPES)
+    for new_image in new_images:
+        filename = file_handler.handle_file_upload(new_image, ACCEPTED_MIME_TYPES)
         new_filenames.append(filename)
 
     title = title or activity.title
@@ -157,10 +157,10 @@ def delete_activity(activity_id: ObjectIdStr, token_data: Annotated[TokenData, D
     activity = activity_model.get_activity_by_id(activity_id)
     if not activity:
         raise HTTPException(404)
-    activity_owner = str(activity.user_id)
-    if activity_owner != token_data.user_id:
+
+    if str(activity.user_id) != token_data.user_id:
         raise HTTPException(403)
 
     activity_points = activity.points_gained
     user_model.increment_user_points(token_data.user_id, -activity_points)
-    activity_model.delete_activity(activity_id)
+    activity_model.delete_activity(activity_id, token_data.user_id)

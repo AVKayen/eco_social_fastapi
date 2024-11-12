@@ -101,9 +101,13 @@ def update_activity(activity_id: str, title: str, caption: str, images: list[str
     return modified_count == 1
 
 
-def delete_activity(activity_id: str) -> bool:
+def delete_activity(activity_id: str, user_id: str) -> bool:
     deleted_count = session.activities_collection().delete_one({'_id': ObjectId(activity_id)}).deleted_count
-    return deleted_count == 1
+    modified_count = session.users_collection().update_one(
+        {'_id': ObjectId(user_id)},
+        {'$pull': {'activities': ObjectId(activity_id)}}
+    ).modified_count
+    return deleted_count == 1 and modified_count == 1
 
 
 def get_user_activities(user_id: str) -> list[ActivityModel]:
