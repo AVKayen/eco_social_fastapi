@@ -58,6 +58,16 @@ def decline_invitation(body: UserIdBody, token_data: Annotated[TokenData, Depend
         raise HTTPException(400)
 
 
+@user_router.delete('/delete-friend/')
+def delete_friend(body: UserIdBody, token_data: Annotated[TokenData, Depends(parse_token)]) -> None:
+
+    if not user_model.is_user_friend(token_data.user_id, body.user_id):
+        raise HTTPException(400, 'No friend to delete')
+
+    if not user_model.delete_friend(token_data.user_id, body.user_id):
+        raise HTTPException(400)
+
+
 @user_router.get('/my-profile/')
 def get_my_profile(token_data: Annotated[TokenData, Depends(parse_token)]) -> user_model.UserModel:
     user = user_model.get_user_by_id(token_data.user_id)
