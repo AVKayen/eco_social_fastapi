@@ -77,22 +77,22 @@ async def create_activity(
 @activity_router.get('/feed')
 def get_feed(
         token_data: Annotated[TokenData, Depends(parse_token)]
-) -> list[activity_model.ActivityModel]:
-    feed = activity_model.get_feed(token_data.user_id)
+) -> list[str]:
+    activity_ids = activity_model.get_feed(token_data.user_id)
 
-    return feed
+    return activity_ids
 
 
 @activity_router.get('/activities/{user_id}')
 def get_activities(
         user_id: ObjectIdStr, token_data: Annotated[TokenData, Depends(parse_token)]
-) -> list[activity_model.ActivityModel]:
+) -> list[str]:
 
     if user_id != token_data.user_id and not user_model.is_user_friend(token_data.user_id, user_id):
         raise HTTPException(403)
 
-    activities = activity_model.get_user_activities(user_id)
-    return activities
+    activity_ids = activity_model.get_user_activities(user_id)
+    return activity_ids
 
 
 @activity_router.get('/{activity_id}')

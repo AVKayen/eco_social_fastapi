@@ -110,22 +110,27 @@ def delete_activity(activity_id: str, user_id: str) -> bool:
     return deleted_count == 1 and modified_count == 1
 
 
-def get_user_activities(user_id: str) -> list[ActivityModel]:
-    results = session.activities_collection().find({'user_id': ObjectId(user_id)}).sort('created_at', -1)
+def get_user_activities(user_id: str) -> list[str]:
+    results = session.activities_collection().find({'user_id': ObjectId(user_id)}, {'_id': 1}).sort('created_at', -1)
 
     if results is None:
         return []
 
-    activities = [ActivityModel(**result) for result in results]
-    return activities
+    activity_ids = [str(result['_id']) for result in results]
+    return activity_ids
 
 
-def get_feed(user_id: str) -> list[ActivityModel]:
-    friends = get_user_by_id(user_id).friends
+def get_feed(user_id: str) -> list[str]:
+    user = get_user_by_id(user_id)
 
-    results = session.activities_collection().find({'user_id': {'$in': friends}}).sort('created_at', -1)
+    if not user:
+        return []
+
+    friends = user.friends
+
+    results = session.activities_collection().find({'user_id': {'$in': friends}}, {'_id': 1}).sort('created_at', -1)
     if results is None:
         return []
 
-    activities = [ActivityModel(**result) for result in results]
-    return activities
+    activity_ids = [str(result['_id']) for result in results]
+    return activity_ids
