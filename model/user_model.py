@@ -82,6 +82,16 @@ def get_user_id_by_username(username: str) -> str | None:
     return str(result['_id'])
 
 
+def search_users(username_search: str) -> list[BaseUserModel]:
+    results = session.users_collection().find({'username': {'$regex': username_search, '$options': 'i'}})
+
+    if not results:
+        return []
+
+    users = [BaseUserModel(**user) for user in results]
+    return users
+
+
 def get_user_password_by_username(username: str) -> str | None:
     result = session.users_collection().find_one({'username': username})
 
