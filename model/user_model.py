@@ -35,6 +35,7 @@ class FriendCloseness:
 
 class FriendshipRequest(BaseModel):
     user_id: Annotated[ObjectId, ObjectIdPydanticAnnotation]
+    username: str = ''
     sent_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
@@ -214,14 +215,15 @@ def get_outgoing_requests(_id: str) -> list[FriendshipRequest]:
     return requests
 
 
-def send_request(my_id: str, friend_id: str) -> bool:
+def send_request(my_id: str, my_username: str, friend_id: str, friend_username: str) -> bool:
 
-    request_to_friend = FriendshipRequest(user_id=friend_id)
-    request_from_me = FriendshipRequest(user_id=my_id)
+    request_to_friend = FriendshipRequest(user_id=friend_id, username=friend_username)
+    request_from_me = FriendshipRequest(user_id=my_id, username=my_username)
 
     query = {'_id': ObjectId(my_id)}  # add request to my outgoing_requests
     update = {'$push': {'outgoing_requests': {
         'user_id': ObjectId(request_to_friend.user_id),
+        'username': request_to_friend.username,
         'sent_at': request_to_friend.sent_at
     }}}
     modified_count = session.users_collection().update_one(query, update).modified_count
@@ -229,6 +231,7 @@ def send_request(my_id: str, friend_id: str) -> bool:
     query = {'_id': ObjectId(friend_id)}  # add request to friend's incoming_requests
     update = {'$push': {'incoming_requests': {
         'user_id': ObjectId(request_from_me.user_id),
+        'username': request_from_me.username,
         'sent_at': request_from_me.sent_at
     }}}
     modified_count += session.users_collection().update_one(query, update).modified_count
@@ -252,9 +255,9 @@ def cancel_request(my_id: str, friend_id: str) -> bool:
     return modified_count == 2
 
 
+# opposite operation to cancel_request - delete your incoming request, outgoing_request in friend
 def decline_request(my_id: str, friend_id: str) -> bool:
     return cancel_request(friend_id, my_id)
-    # opposite operation to cancel_request - delete your incoming request, outgoing_request in friend
 
 
 def accept_request(my_id: str, friend_id: str) -> bool:

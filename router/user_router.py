@@ -26,7 +26,13 @@ def invite_user(body: UserIdBody, token_data: Annotated[TokenData, Depends(parse
     if user_model.is_user_friend(token_data.user_id, body.user_id):
         raise HTTPException(400, 'You are already friends')
 
-    if not user_model.send_request(token_data.user_id, body.user_id):
+    user = user_model.get_user_by_id(token_data.user_id)
+    friend = user_model.get_user_by_id(body.user_id)
+
+    if not user or not friend:
+        raise HTTPException(404)
+
+    if not user_model.send_request(token_data.user_id, user.username, body.user_id, friend.username):
         raise HTTPException(400)
 
 
