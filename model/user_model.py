@@ -163,7 +163,6 @@ def is_user_friend(my_id: str, friend_id: str) -> bool:
         '_id': ObjectId(my_id),
         'friends': ObjectId(friend_id)
     })
-    print(result)
     return bool(result)
 
 
