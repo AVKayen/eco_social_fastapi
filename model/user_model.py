@@ -82,13 +82,17 @@ def get_user_id_by_username(username: str) -> str | None:
     return str(result['_id'])
 
 
-def search_users(username_search: str) -> list[BaseUserModel]:
+def search_users(username_search: str) -> list[PublicUserModel]:
     results = session.users_collection().find({'username': {'$regex': username_search, '$options': 'i'}})
 
     if not results:
         return []
 
-    users = [BaseUserModel(**user) for user in results]
+    users = []
+    for user in results:
+        friend_count = len(user['friends']) if 'friends' in user else 0
+        users.append(PublicUserModel(**{**user, 'friend_count': friend_count}))
+
     return users
 
 

@@ -59,7 +59,7 @@ def decline_invitation(body: UserIdBody, token_data: Annotated[TokenData, Depend
 
 
 @user_router.get('/find/{username_search}')
-def find_user_by_username(username_search: str) -> list[user_model.BaseUserModel]:
+def find_user_by_username(username_search: str) -> list[user_model.PublicUserModel]:
     return user_model.search_users(username_search)
 
 
