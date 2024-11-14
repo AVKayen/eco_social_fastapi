@@ -32,7 +32,7 @@ app.add_middleware(
 )
 
 @app.middleware("http")
-async def add_process_time_header(request: Request, call_next):
+async def update_response_headers(request: Request, call_next):
     response = await call_next(request)
     response.headers['Charset'] = 'utf-8'
     return response
