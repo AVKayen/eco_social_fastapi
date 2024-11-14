@@ -53,17 +53,3 @@ app.mount('/static', StaticFiles(directory=settings.upload_dir), name='static')
 app.include_router(auth_router)
 app.include_router(user_router, prefix='/user')
 app.include_router(activity_router, prefix='/activity')
-
-'''
-TODO: User System
-
-
-TODO: Activity System (Addition, Editing, Types)
-User can create activities of certain type, description and photo
-Types:
-- bus_instead_of_car
-- ...
-Make only a portion of feed load
-Each activity is attached to a pool of points that are added to the **Profile XP**
-At least one activity a day keeps **The Streak** alive
-'''
