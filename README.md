@@ -8,7 +8,7 @@ Create a .env file in the root directory according to the .env.example file.
 - python 3.12+
 - MongoDB database
 
-## Backend repository
+## Frontend repository
 [eco_social_flutter](https://github.com/AVKayen/eco_social_flutter)
 
 ## Licence
