@@ -1,12 +1,16 @@
-# code source on stack overflow: https://stackoverflow.com/a/76719893
-from typing import Any
+from typing import Any, Annotated
 
 from bson import ObjectId
+from pydantic import Field
 from pydantic_core import core_schema
 
 from pydantic.json_schema import JsonSchemaValue
 
 
+ObjectIdStr = Annotated[str, Field(min_length=24, max_length=24)]
+
+
+# code source on stack overflow: https://stackoverflow.com/a/76719893
 class ObjectIdPydanticAnnotation:
     @classmethod
     def validate_object_id(cls, v: Any, handler) -> ObjectId:

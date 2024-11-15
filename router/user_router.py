@@ -3,64 +3,68 @@ from typing import Annotated
 from fastapi import Depends, APIRouter, UploadFile, HTTPException, BackgroundTasks
 from fastapi.responses import JSONResponse
 
-from model.request_model import UserIdBody, AboutMeBody
 from controller.auth_controller import TokenData, parse_token
 import model.user_model as user_model
-from pydantic import Field
+from model.object_id_model import ObjectIdStr
+from pydantic import Field, BaseModel
 
 import utils.file_handler as file_handler
+
+
+class AboutMeBody(BaseModel):
+    about_me: Annotated[str, Field(max_length=500)]
 
 
 user_router = APIRouter()
 
 
-@user_router.post('/invitation/send', status_code=201)
-def invite_user(body: UserIdBody, token_data: Annotated[TokenData, Depends(parse_token)]) -> None:
+@user_router.post('/invitation/send/{user_id}')
+def invite_user(user_id: ObjectIdStr, token_data: Annotated[TokenData, Depends(parse_token)]) -> None:
 
-    if token_data.user_id == body.user_id:
+    if token_data.user_id == user_id:
         raise HTTPException(400, 'You cannot send an invitation to yourself')
-    if user_model.is_request_outgoing(token_data.user_id, body.user_id):
+    if user_model.is_request_outgoing(token_data.user_id, user_id):
         raise HTTPException(400, 'Invitation request already sent to that person')
-    if user_model.is_request_incoming(token_data.user_id, body.user_id):
+    if user_model.is_request_incoming(token_data.user_id, user_id):
         raise HTTPException(400, 'Invitation request already incoming from that person')
-    if user_model.is_user_friend(token_data.user_id, body.user_id):
+    if user_model.is_user_friend(token_data.user_id, user_id):
         raise HTTPException(400, 'You are already friends')
 
     user = user_model.get_user_by_id(token_data.user_id)
-    friend = user_model.get_user_by_id(body.user_id)
+    friend = user_model.get_user_by_id(user_id)
 
     if not user or not friend:
         raise HTTPException(404)
 
-    if not user_model.send_request(token_data.user_id, user.username, body.user_id, friend.username):
+    if not user_model.send_request(token_data.user_id, user.username, user_id, friend.username):
         raise HTTPException(400)
 
 
-@user_router.delete('/invitation/cancel')
-def cancel_invitation(body: UserIdBody, token_data: Annotated[TokenData, Depends(parse_token)]) -> None:
-    if not user_model.cancel_request(token_data.user_id, body.user_id):
+@user_router.delete('/invitation/cancel/{user_id}')
+def cancel_invitation(user_id: ObjectIdStr, token_data: Annotated[TokenData, Depends(parse_token)]) -> None:
+    if not user_model.cancel_request(token_data.user_id, user_id):
         raise HTTPException(400)  # 'No invitation to cancel or something went wrong'
 
 
-@user_router.post('/invitation/accept', status_code=201)
-def accept_invitation(body: UserIdBody, token_data: Annotated[TokenData, Depends(parse_token)]) -> None:
+@user_router.post('/invitation/accept/{user_id}')
+def accept_invitation(user_id: ObjectIdStr, token_data: Annotated[TokenData, Depends(parse_token)]) -> None:
 
-    if not user_model.is_request_incoming(token_data.user_id, body.user_id):
+    if not user_model.is_request_incoming(token_data.user_id, user_id):
         raise HTTPException(400, 'No invitation to accept')
 
-    deletion_success = user_model.decline_request(token_data.user_id, body.user_id)
+    deletion_success = user_model.decline_request(token_data.user_id, user_id)
 
-    if not deletion_success or not user_model.accept_request(token_data.user_id, body.user_id):
+    if not deletion_success or not user_model.accept_request(token_data.user_id, user_id):
         raise HTTPException(400)  # 'Already friends or something went wrong'
 
 
-@user_router.delete('/invitation/decline')
-def decline_invitation(body: UserIdBody, token_data: Annotated[TokenData, Depends(parse_token)]) -> None:
+@user_router.delete('/invitation/decline/{user_id}')
+def decline_invitation(user_id: ObjectIdStr, token_data: Annotated[TokenData, Depends(parse_token)]) -> None:
 
-    if not user_model.is_request_incoming(token_data.user_id, body.user_id):
+    if not user_model.is_request_incoming(token_data.user_id, user_id):
         raise HTTPException(400, 'No invitation to decline')
 
-    if not user_model.decline_request(token_data.user_id, body.user_id):
+    if not user_model.decline_request(token_data.user_id, user_id):
         raise HTTPException(400)
 
 
@@ -69,13 +73,13 @@ def find_user_by_username(username_search: str) -> list[user_model.PublicUserMod
     return user_model.search_users(username_search)
 
 
-@user_router.delete('/delete-friend')
-def delete_friend(body: UserIdBody, token_data: Annotated[TokenData, Depends(parse_token)]) -> None:
+@user_router.delete('/delete-friend/{user_id}')
+def delete_friend(user_id: ObjectIdStr, token_data: Annotated[TokenData, Depends(parse_token)]) -> None:
 
-    if not user_model.is_user_friend(token_data.user_id, body.user_id):
+    if not user_model.is_user_friend(token_data.user_id, user_id):
         raise HTTPException(400, 'No friend to delete')
 
-    if not user_model.delete_friend(token_data.user_id, body.user_id):
+    if not user_model.delete_friend(token_data.user_id, user_id):
         raise HTTPException(400)
 
 

@@ -6,7 +6,7 @@ from fastapi import Depends, APIRouter, Form, UploadFile, HTTPException, Backgro
 from controller.auth_controller import TokenData, parse_token
 import model.user_model as user_model
 import model.activity_model as activity_model
-from model.request_model import ObjectIdStr
+from model.object_id_model import ObjectIdStr
 
 import utils.file_handler as file_handler
 from config.settings import settings
