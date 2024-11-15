@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from fastapi.staticfiles import StaticFiles
@@ -31,11 +31,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.middleware("http")
-async def update_response_headers(request: Request, call_next):
-    response = await call_next(request)
-    response.headers['Charset'] = 'utf-8'
-    return response
 
 @app.get('/')
 async def root():
